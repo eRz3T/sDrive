@@ -1,16 +1,16 @@
 # Aplikacja Webowa Przechowująca Pliki z Dostępem Chronionym
 
-## Opis projektu
+### 1. Opis projektu
 
 Celem niniejszej pracy dyplomowej jest  wdrożenie aplikacji internetowej umożliwiającej bezpieczne przechowywanie plików oraz zarządzanie dostępem do nich. W dobie intensywnej digitalizacji danych rośnie potrzeba opracowania niezawodnych metod ochrony informacji przechowywanych online.
 
-## Technologie
+### 2. Technologie
     Backend: Python, Django
     Frontend: React
     Baza danych: MySQL
     Konteneryzacja: Docker
 
-# Setup sDrive
+### 3. Uruchomienie projektu
 
 1. Aktualizacja systemu i instalacja niezbędnych paczek
 

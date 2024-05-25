@@ -5,13 +5,10 @@
 Celem niniejszej pracy dyplomowej jest  wdrożenie aplikacji internetowej umożliwiającej bezpieczne przechowywanie plików oraz zarządzanie dostępem do nich. W dobie intensywnej digitalizacji danych rośnie potrzeba opracowania niezawodnych metod ochrony informacji przechowywanych online.
 
 ## Technologie
-
     Backend: Python, Django
     Frontend: React
     Baza danych: MySQL
     Konteneryzacja: Docker
-    Kontrola wersji: Git, GitHub
-    Diagramy: Draw.io
 
 # Setup sDrive
 
@@ -28,15 +25,20 @@ sudo apt install git python3 python3-pip python3-virtualenv
 ```
 cd ~/sDrive/
 
+git clone https://github.com/eRz3T/sDrive
+
 virtualenv venv
  
 source venv/bin/activate
+
+pip install django
 ```
 
-3. Pobranie repozytorium git
+3. Uruchomienie aplikacji
 
 ```
-cd ~/sDrive/
+cd ~/sDrive/sdrive/
 
-git clone https://github.com/eRz3T/sDrive
+python manage.py runserver
 ```
+

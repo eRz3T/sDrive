@@ -15,20 +15,25 @@ Celem niniejszej pracy dyplomowej jest  wdrożenie aplikacji internetowej umożl
 
 ```
 sudo apt update && sudo apt upgrade -y
-
+```
+```
 sudo apt install mysql-server -y
-
+```
+```
 sudo systemctl status mysql
-
+```
+```
 (sudo systemctl start mysql.service / sudo systemctl stop mysql.service)
-
+```
+```
 sudo mysql_secure_installation
-	(0 n n n y)
-
+```
+Odpowiedzi do instalacji mysql -> 0 n n n y
+```
 sudo apt install nodejs -y
-
+```
+```
 sudo apt install npm -y
-
 ```
 
 2. Przygotowanie środowiska
@@ -38,6 +43,11 @@ cd ~/sDrive/
 
 git clone https://github.com/eRz3T/sDrive
 
+```
+3. Inne
+
+```
+sudo mysql -u root
 ```
 
 

@@ -5,8 +5,7 @@
 Celem niniejszej pracy dyplomowej jest  wdrożenie aplikacji internetowej umożliwiającej bezpieczne przechowywanie plików oraz zarządzanie dostępem do nich. W dobie intensywnej digitalizacji danych rośnie potrzeba opracowania niezawodnych metod ochrony informacji przechowywanych online.
 
 ### 2. Technologie
-    Backend: Python, Django
-    Frontend: React
+    Backend: JavaScript, Node.js
     Baza danych: MySQL
     Konteneryzacja: Docker
 
@@ -17,7 +16,19 @@ Celem niniejszej pracy dyplomowej jest  wdrożenie aplikacji internetowej umożl
 ```
 sudo apt update && sudo apt upgrade -y
 
-sudo apt install git python3 python3-pip python3-virtualenv
+sudo apt install mysql-server -y
+
+sudo systemctl status mysql
+
+(sudo systemctl start mysql.service / sudo systemctl stop mysql.service)
+
+sudo mysql_secure_installation
+	(0 n n n y)
+
+sudo apt install nodejs -y
+
+sudo apt install npm -y
+
 ```
 
 2. Przygotowanie środowiska
@@ -27,18 +38,6 @@ cd ~/sDrive/
 
 git clone https://github.com/eRz3T/sDrive
 
-virtualenv venv
- 
-source venv/bin/activate
-
-pip install django
 ```
 
-3. Uruchomienie aplikacji
-
-```
-cd ~/sDrive/sdrive/
-
-python manage.py runserver
-```
 

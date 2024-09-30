@@ -4,8 +4,7 @@ const app = express();
 const cookie = require("cookie-parser");
 const dotenv = require("dotenv").config();
 const path = require('path');
-
-const PORT = process.env.PORT || 3000; // Definicja PORTu
+const PORT = process.env.PORT || 3000; 
 
 app.use("/js", express.static(path.join(__dirname, "public/js")));
 app.use("/css", express.static(path.join(__dirname, "public/css")));
@@ -21,6 +20,8 @@ db.connect((err) => {
     console.log("Połączono z bazą danych");
 });
 
+app.use("/", require("./routes/pages"));
+app.use("/api", require("./controllers/auth"));
 
 app.listen(PORT, () => {
     console.log(`Serwer działa na porcie ${PORT}`);

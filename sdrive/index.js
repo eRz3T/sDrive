@@ -2,7 +2,7 @@ const express = require("express");
 const db = require("./routes/db-config");
 const app = express();
 const cookie = require("cookie-parser");
-const dotenv = require("dotenv").config();
+
 const path = require('path');
 const PORT = process.env.PORT || 3000; 
 

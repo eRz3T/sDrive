@@ -15,7 +15,7 @@ MySQL
 
 	sudo mysql -u root
 
-ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'TwojeNoweHasło';
+ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '11tata11';
 FLUSH PRIVILEGES;
 
 	Usuwanie 
@@ -55,6 +55,19 @@ Docker
 Code - środowisko pracy
 
 	npm install -g express ejs dotenv jsonwebtoken mysql bcryptjs cookie-parser nodemon
+	
+Plik .env w głównym folderze
+
+"
+	DATABASE_HOST = localhost
+	DATABASE_USER = sdrive
+	DATABASE_PASSWORD = 11tata11
+	DATABASE = sdrive_logins
+"
+
+
+W bazie danych stworzyć użytkownika sdrive o haśle 11tata11 o pełnych uprawnieniach + stworzyć nową bazę o nazwie sdrive_logins.
+
 	
 	
 

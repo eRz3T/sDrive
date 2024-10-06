@@ -1,3 +1,5 @@
+const form = document.getElementById("registerForm");
+
 form.addEventListener("submit", () => {
     const register = {
         email: email.vaule,

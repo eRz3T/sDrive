@@ -6,8 +6,8 @@ const cookie = require("cookie-parser");
 const path = require('path');
 const PORT = process.env.PORT || 3000; 
 
-app.use("/js", express.static(path.join(__dirname, "public/js")));
-app.use("/css", express.static(path.join(__dirname, "public/css")));
+app.use("/js", express.static(path.join(__dirname, "/public/js")));
+app.use("/css", express.static(path.join(__dirname, "/public/css")));
 app.use(cookie());
 app.use(express.json());
 

@@ -9,7 +9,7 @@ Celem niniejszej pracy dyplomowej jest  wdrożenie aplikacji internetowej umożl
     Baza danych: MySQL
     Konteneryzacja: Docker
 
-### 3. Uruchomienie projektu
+### 3. Instalacja projektu
 
 1. Aktualizacja systemu i instalacja niezbędnych paczek
 
@@ -48,4 +48,11 @@ cd sDrive/sdrive
 
 sudo npm install -g express ejs dotenv jsonwebtoken mysql bcryptjs cookie-parser nodemon
 ```
-
+### 4. Uruchomienie projektu
+```
+nodemon index.js
+```
+W przeglądarce wpisać adres
+```
+http://localhost:3000/
+```

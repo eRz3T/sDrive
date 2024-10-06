@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register</title>
+</head>
+<body>
+    <h1>Zarejestruj się</h1>
+    <form id="registerForm" action="/api/register" method="POST">
+        <label>Email: <input type="email" name="email" id="email" required></label><br>
+        <label>Hasło: <input type="password" name="password" id="password" required></label><br>
+        <button type="submit">Zarejestruj się</button>
+    </form>
+    <div id="error" style="color: red; display: none;"></div>
+    <div id="success" style="color: green; display: none;"></div>
+    <script src="/js/register.js"></script>
+</body>
+</html>

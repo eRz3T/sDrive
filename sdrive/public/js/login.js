@@ -1,25 +1,27 @@
-form.addEventListener("submit", () => {
+const form = document.getElementById("loginForm");
+
+form.addEventListener("submit", (event) => {
+    event.preventDefault();  
     const login = {
-        email: email.vaule,
-        password: password.value
-    }
-    fetch("/api/register", {
+        email: document.getElementById("email").value,
+        password: document.getElementById("password").value
+    };
+    fetch("/api/login", {
         method: "POST",
         body: JSON.stringify(login),
         headers: {
-            "Content-Type":"application/json"
+            "Content-Type": "application/json"
         }
-    }).then(res=> res.json())
+    }).then(res => res.json())
         .then(data => {
-            if (statusbar.status == "error") {
-                success.style.display = "none"
-                error.style.display = "block"
-                error.innerText = data.error
+            console.log("Odpowiedź z backendu:", data);  // Dodaj to do debugowania
+            if (data.status === "error") {
+                document.getElementById("success").style.display = "none";
+                document.getElementById("error").style.display = "block";
+                document.getElementById("error").innerText = data.error;
             } else {
-                error.style.display = "none"
-                success.style.display = "block"
-                success.innerText = data.success
+                window.location.href = data.redirect;
             }
-        })
-})
-        
+        });
+    
+});

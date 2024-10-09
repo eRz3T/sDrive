@@ -7,8 +7,41 @@
 </head>
 <body>
     <h1>Witaj, <%= user.email_users %>!</h1>
+
+    <!-- Formularz przesyłania pliku -->
+    <h2>Prześlij swój plik</h2>
+    <form id="uploadForm" enctype="multipart/form-data">
+        <input type="file" id="file" name="file" required>
+        <button type="submit">Prześlij</button>
+    </form>
+    <div id="uploadError" style="color: red;"></div>
+    <div id="uploadSuccess" style="color: green;"></div>
+
+    <!-- Lista plików użytkownika -->
+    <h2>Twoje pliki:</h2>
+    <ul>
+        <% if (files.length > 0) { %>
+            <% files.forEach(function(file) { %>
+                <li>
+                    <%= file %>
+                    <!-- Link do pobrania pliku -->
+                    <a href="/download/<%= file %>">
+                        <button type="button">Pobierz</button>
+                    </a>
+                    <!-- Przycisk do usunięcia pliku -->
+                    <button type="button" onclick="deleteFile('<%= file %>')">Usuń</button>
+                </li>
+            <% }); %>
+        <% } else { %>
+            <li>Nie masz żadnych plików</li>
+        <% } %>
+    </ul>
+
     <form action="/logout" method="POST">
         <button type="submit">Wyloguj się</button>
     </form>
+
+    <script src="/js/deleteFile.js"></script>
+    <script src="/js/upload.js"></script>
 </body>
 </html>

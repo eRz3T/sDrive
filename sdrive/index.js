@@ -2,18 +2,19 @@ const express = require("express");
 const db = require("./routes/db-config");
 const app = express();
 const cookie = require("cookie-parser");
-
 const path = require('path');
-const PORT = process.env.PORT || 3000; 
+const PORT = process.env.PORT || 3000;
+
 
 app.use("/js", express.static(path.join(__dirname, "/public/js")));
 app.use("/css", express.static(path.join(__dirname, "/public/css")));
+app.use("/data", express.static(path.join(__dirname, "/data"))); // Nowa ścieżka do plików
 app.use(cookie());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true })); // Dodaj to, aby obsługiwać przesyłanie formularzy
 
 app.set("view engine", "ejs");
 app.set("views", "./views");
-
 
 db.connect((err) => {
     if (err) throw err;

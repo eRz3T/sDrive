@@ -1,15 +1,33 @@
 const express = require("express");
 const loggedIn = require("../controllers/loggedIn");
 const logout = require("../controllers/logout");
+const downloadFile = require("../controllers/download");
+const deleteFile = require("../controllers/deleteFile");
 const router = express.Router();
+const fs = require('fs');
+const path = require('path');
+
+// Trasa do usuwania plików z weryfikacją czy użytkownik jest zalogowany
+router.delete("/delete/:filename", loggedIn, deleteFile);
+
+// Trasa do pobierania plików z weryfikacją, czy użytkownik jest zalogowany
+router.get("/download/:filename", loggedIn, downloadFile);
 
 // Trasa do strony "home" z weryfikacją, czy użytkownik jest zalogowany
 router.get("/home", loggedIn, (req, res) => {
     if (req.user) {
-        // Jeśli użytkownik jest zalogowany, renderuj stronę "home.ejs"
-        res.render("home", { user: req.user });
+        const userEmail = req.user.email_users;
+        const userDir = path.join(__dirname, '..', 'data', 'users', userEmail);
+        
+        // Sprawdź, czy folder użytkownika istnieje
+        let files = [];
+        if (fs.existsSync(userDir)) {
+            files = fs.readdirSync(userDir); // Pobierz listę plików w folderze użytkownika
+        }
+        
+        // Przekaż pliki do widoku home.ejs
+        res.render("home", { user: req.user, files: files });
     } else {
-        // Jeśli użytkownik nie jest zalogowany, przekieruj go na stronę logowania
         res.redirect("/login");
     }
 });

@@ -7,6 +7,25 @@ const router = express.Router();
 const fs = require('fs');
 const path = require('path');
 
+router.get("/show/:filename", loggedIn, (req, res) => {
+    const userEmail = req.user.email_users;
+    const userDir = path.join(__dirname, '..', 'data', 'users', userEmail);
+    const filename = decodeURIComponent(req.params.filename);  // Dekodowanie znaku %20 na spacje
+    const filePath = path.join(userDir, filename);
+
+    // Sprawdź, czy plik istnieje
+    if (fs.existsSync(filePath)) {
+        fs.readFile(filePath, 'utf8', (err, data) => {
+            if (err) {
+                return res.status(500).send("Błąd podczas czytania pliku");
+            }
+            res.send(data);  // Zwraca zawartość pliku tekstowego
+        });
+    } else {
+        res.status(404).send("Plik nie istnieje");
+    }
+});
+
 // Trasa do usuwania plików z weryfikacją czy użytkownik jest zalogowany
 router.delete("/delete/:filename", loggedIn, deleteFile);
 

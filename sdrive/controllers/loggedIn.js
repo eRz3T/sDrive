@@ -1,4 +1,4 @@
-const db = require("../routes/db-config");
+const { dbLogins } = require("../routes/db-config");
 const jwt = require("jsonwebtoken");
 
 const loggedIn = (req, res, next) => {
@@ -11,7 +11,7 @@ const loggedIn = (req, res, next) => {
         const decoded = jwt.verify(req.cookies.userRegistered, process.env.JWT_SECRET);
         console.log("Odczytany token JWT:", decoded);  // Dodaj logowanie
 
-        db.query('SELECT * FROM users WHERE id_users = ?', [decoded.id], (err, result) => {
+        dbLogins.query('SELECT * FROM users WHERE id_users = ?', [decoded.id], (err, result) => {
             if (err) throw err;
             if (result.length > 0) {
                 req.user = result[0];

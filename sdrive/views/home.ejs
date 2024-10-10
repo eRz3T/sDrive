@@ -22,11 +22,11 @@
             <% if (files.length > 0) { %>
                 <% files.forEach(function(file) { %>
                     <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <%= file %>
+                        <%= file.originalname_files %> <!-- Wyświetlanie oryginalnej nazwy pliku -->
                         <div>
-                            <a href="/download/<%= file %>" class="btn btn-success btn-sm">Pobierz</a>
-                            <button type="button" class="btn btn-info btn-sm" onclick="showFileContent('<%= file %>')">Pokaż zawartość</button>
-                            <button type="button" class="btn btn-danger btn-sm" onclick="deleteFile('<%= file %>')">Usuń</button>
+                            <a href="/download/<%= file.cryptedname_files %>" class="btn btn-success btn-sm">Pobierz</a>
+                            <button type="button" class="btn btn-info btn-sm" onclick="showFileContent('<%= file.cryptedname_files %>')">Pokaż zawartość</button>
+                            <button type="button" class="btn btn-danger btn-sm" onclick="deleteFile('<%= file.cryptedname_files %>')">Usuń</button>
                         </div>
                     </li>
                 <% }); %>

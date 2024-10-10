@@ -1,6 +1,6 @@
 -- MySQL dump 10.13  Distrib 8.0.36, for Linux (x86_64)
 --
--- Host: localhost    Database: sdrive_logins
+-- Host: localhost    Database: sdrive_files
 -- ------------------------------------------------------
 -- Server version	8.0.39-0ubuntu0.24.04.2
 
@@ -16,32 +16,30 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `users`
+-- Table structure for table `files`
 --
 
-DROP TABLE IF EXISTS `users`;
+DROP TABLE IF EXISTS `files`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `users` (
-  `id_users` int NOT NULL AUTO_INCREMENT,
-  `email_users` varchar(100) NOT NULL,
-  `password_users` varchar(100) NOT NULL,
-  `firstname_users` varchar(100) NOT NULL,
-  `lastname_users` varchar(100) NOT NULL,
-  `dateofbirth_users` date NOT NULL,
-  `safeid_users` varchar(100) DEFAULT NULL,
-  PRIMARY KEY (`id_users`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+CREATE TABLE `files` (
+  `id_files` int NOT NULL AUTO_INCREMENT,
+  `originalname_files` varchar(100) NOT NULL,
+  `cryptedname_files` varchar(100) NOT NULL,
+  `cryptedowner_files` varchar(100) NOT NULL,
+  `filetype_files` varchar(45) NOT NULL,
+  PRIMARY KEY (`id_files`)
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `users`
+-- Dumping data for table `files`
 --
 
-LOCK TABLES `users` WRITE;
-/*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (3,'tet@tet','$2a$08$auFK/b1M.zIxq0dYjsWDBOgRESfGYZxc1j/BsrZi0Z8pV28C9p0BC','tet','tet','1998-07-27','$2a$10$Itt9nmjTNY3qXsLbNkpFc.my5GAWBeWoGw.C5IRLCAJV2T.hqu.hm'),(5,'bartek.c12@gmail.com','$2a$08$T3yWQON6bWPvKcxPGoJlcekukThnYRmZKlm5Oi9/LB0eZgl0kwr5S','Bartek','Cetra','1998-07-27','7pGVI2sUuJvXPW9d');
-/*!40000 ALTER TABLE `users` ENABLE KEYS */;
+LOCK TABLES `files` WRITE;
+/*!40000 ALTER TABLE `files` DISABLE KEYS */;
+INSERT INTO `files` VALUES (11,'readme.md','2052472291040c630f94be7c70231b34.md','7pGVI2sUuJvXPW9d','md');
+/*!40000 ALTER TABLE `files` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 

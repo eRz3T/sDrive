@@ -1,5 +1,6 @@
 const express = require("express");
-const db = require("./routes/db-config");
+const { dbLogins } = require("./routes/db-config");
+const { dbFiles } = require("./routes/db-config");
 const app = express();
 const cookie = require("cookie-parser");
 const path = require('path');
@@ -16,14 +17,31 @@ app.use(express.urlencoded({ extended: true })); // Dodaj to, aby obsługiwać p
 app.set("view engine", "ejs");
 app.set("views", "./views");
 
-db.connect((err) => {
-    if (err) throw err;
-    console.log("Połączono z bazą danych");
-});
-
 app.use("/", require("./routes/pages"));
 app.use("/api", require("./controllers/auth"));
 
 app.listen(PORT, () => {
     console.log(`Serwer działa na porcie ${PORT}`);
 });
+
+//BAZY DANYCH
+
+// UŻYTKOWNICY
+dbLogins.connect((err) => {
+    if (err) {
+        console.error("Błąd połączenia z bazą danych logowania:", err);
+    } else {
+        console.log("Połączono z bazą danych logowania");
+    }
+});
+
+// PLIKI
+dbFiles.connect((err) => {
+    if (err) {
+        console.error("Błąd połączenia z bazą danych plików:", err);
+    } else {
+        console.log("Połączono z bazą danych plików");
+    }
+});
+
+

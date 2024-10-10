@@ -16,6 +16,7 @@ uploadForm.addEventListener('submit', (event) => {
             document.getElementById('uploadError').innerText = data.error;
         } else {
             document.getElementById('uploadSuccess').innerText = data.success;
+            location.reload(); // Odśwież stronę po usunięciu pliku
         }
     });
 });

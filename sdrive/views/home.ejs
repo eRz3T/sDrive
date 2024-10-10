@@ -10,54 +10,83 @@
 </head>
 <body>
     <div class="container">
-        <h1 class="mt-4">Witaj, <%= user.email_users %>!</h1>
+        <h1 class="mt-4">Witaj, <%= user.firstname_users %>!</h1>
 
-        <!-- Przykładowe elementy Bootstrap -->
-        <form action="/logout" method="POST" class="mt-3">
-            <button type="submit" class="btn btn-primary">Wyloguj się</button>
-        </form>
+        <div class="row mt-5">
+            <!-- Sekcja lewa -->
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h4>Informacje użytkownika</h4>
+                        <ul>
+                            <li>Imię: <%= user.firstname_users %></li>
+                            <li>Nazwisko: <%= user.lastname_users %></li>
+                            <li>Email: <%= user.email_users %></li>
+                            <li>Data urodzenia: <%= user.dateofbirth_users %></li>
+                            <!-- Możesz dodać więcej informacji tutaj -->
+                        </ul>
+                    </div>
+                </div>
 
-        <h3 class="mt-5">Twoje pliki</h3>
-        <ul class="list-group">
-            <% if (files.length > 0) { %>
-                <% files.forEach(function(file) { %>
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <%= file.originalname_files %> <!-- Wyświetlanie oryginalnej nazwy pliku -->
-                        <div>
-                            <a href="/download/<%= file.cryptedname_files %>" class="btn btn-success btn-sm">Pobierz</a>
-                            <button type="button" class="btn btn-info btn-sm" onclick="showFileContent('<%= file.cryptedname_files %>')">Pokaż zawartość</button>
-                            <button type="button" class="btn btn-danger btn-sm" onclick="deleteFile('<%= file.cryptedname_files %>')">Usuń</button>
-                        </div>
-                    </li>
-                <% }); %>
-            <% } else { %>
-                <li class="list-group-item">Nie masz żadnych plików</li>
-            <% } %>
-        </ul>
+                <form action="/logout" method="POST" class="mt-3">
+                  <button type="submit" class="btn btn-primary">Wyloguj się</button>
+              </form>
 
-        <h3 class="mt-5">Prześlij swój plik</h3>
-        <form id="uploadForm" enctype="multipart/form-data" class="mt-3">
-            <input type="file" id="file" name="file" class="form-control mb-3" required>
-            <button type="submit" class="btn btn-primary">Prześlij</button>
-        </form>
+            </div>
 
-        <div id="uploadError" class="text-danger mt-3" style="display: none;"></div>
-        <div id="uploadSuccess" class="text-success mt-3" style="display: none;"></div>
+            <!-- Sekcja prawa -->
+            <div class="col-md-8">
+                <h3>Twoje pliki</h3>
+                <ul class="list-group">
+                    <% if (files.length > 0) { %>
+                        <% files.forEach(function(file) { %>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <%= file.originalname_files %> <!-- Wyświetlanie oryginalnej nazwy pliku -->
+                                <div>
+                                    <a href="/download/<%= file.cryptedname_files %>" class="btn btn-success btn-sm">Pobierz</a>
+                                    <button type="button" class="btn btn-info btn-sm" onclick="showFileContent('<%= file.cryptedname_files %>')">Pokaż zawartość</button>
+                                    <button type="button" class="btn btn-danger btn-sm" onclick="deleteFile('<%= file.cryptedname_files %>')">Usuń</button>
+                                </div>
+                            </li>
+                        <% }); %>
+                    <% } else { %>
+                        <li class="list-group-item">Nie masz żadnych plików</li>
+                    <% } %>
+                </ul>
+
+                <h3 class="mt-5">Dodawanie plików do konta</h3>
+                <form id="uploadForm" enctype="multipart/form-data" class="mt-3">
+                    <div class="d-flex align-items-center">
+                        <input type="file" id="file" name="file" class="form-control me-2" required>
+                        <button type="submit" class="btn btn-primary">Prześlij</button>
+                    </div>
+                </form>
+
+                <div id="uploadError" class="text-danger mt-3" style="display: none;"></div>
+                <div id="uploadSuccess" class="text-success mt-3" style="display: none;"></div>
+            </div>
+        </div>
     </div>
 
     <!-- Bootstrap Modal -->
     <div class="modal fade" id="fileContentModal" tabindex="-1" aria-labelledby="fileContentLabel" aria-hidden="true">
       <div class="modal-dialog modal-lg">
         <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="fileContentLabel">Zawartość pliku</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    
+          <!-- Navbar dla tytułu okna -->
+          <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            <div class="container-fluid">
+              <span class="navbar-brand" id="fileContentLabel">Zawartość pliku</span> <!-- Tutaj dynamiczna nazwa pliku -->
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Zamknij</button>
+            </div>
+          </nav>
+    
+          <div class="modal-body" style="word-wrap: break-word; max-height: 70vh; overflow-y: auto;">
+            <!-- Ustawiamy innerHTML w elemencie o id 'fileContent' -->
+            <div id="fileContent" class="text-break"></div>
           </div>
-          <div class="modal-body">
-            <pre id="fileContent" class="text-break"></pre>
-          </div>
+    
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Zamknij</button>
           </div>
         </div>
       </div>
@@ -70,3 +99,4 @@
     <script src="/js/showfile.js"></script> <!-- Załaduj nowy skrypt -->
 </body>
 </html>
+

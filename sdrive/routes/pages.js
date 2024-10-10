@@ -3,35 +3,22 @@ const loggedIn = require("../controllers/loggedIn");
 const logout = require("../controllers/logout");
 const downloadFile = require("../controllers/download");
 const deleteFile = require("../controllers/deleteFile");
+const { showFileContent, removeHtmlFile } = require("../controllers/fileController"); // Import kontrolera plików
 const { dbFiles } = require("../routes/db-config");
 const router = express.Router();
-const fs = require('fs');
-const path = require('path');
 
-router.get("/show/:filename", loggedIn, (req, res) => {
-    const safeId = req.user.safeid_users;  // Pobieramy safeid użytkownika (cryptedowner_files)
-    const filename = req.params.filename;  // Pobieramy zaszyfrowaną nazwę pliku (cryptedname_files)
 
-    // Tworzymy pełną ścieżkę do pliku w folderze o nazwie safeid_users
-    const filePath = path.join(__dirname, '..', 'data', 'users', safeId, filename);
+// Trasa do wyświetlania zawartości pliku
+router.get("/show/:filename", loggedIn, showFileContent);
 
-    // Logowanie ścieżki dla debugowania
-    console.log(`Sprawdzana ścieżka pliku: ${filePath}`);
+// Trasa do usuwania plików HTML
+router.post("/remove-html", removeHtmlFile);
 
-    // Sprawdź, czy plik istnieje
-    if (fs.existsSync(filePath)) {
-        fs.readFile(filePath, 'utf8', (err, data) => {
-            if (err) {
-                console.error('Błąd podczas czytania pliku:', err);
-                return res.status(500).send("Błąd podczas czytania pliku");
-            }
-            res.send(data);  // Zwraca zawartość pliku tekstowego
-        });
-    } else {
-        console.log(`Plik ${filename} nie istnieje w ścieżce ${filePath}`);
-        res.status(404).send("Plik nie istnieje");
-    }
-});
+// Trasa do usuwania plików z weryfikacją, czy użytkownik jest zalogowany
+router.delete("/delete/:filename", loggedIn, deleteFile);
+
+// Trasa do pobierania plików z weryfikacją, czy użytkownik jest zalogowany
+router.get("/download/:filename", loggedIn, downloadFile);
 
 // Trasa do usuwania plików z weryfikacją czy użytkownik jest zalogowany
 router.delete("/delete/:filename", loggedIn, deleteFile);

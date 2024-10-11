@@ -56,11 +56,13 @@ const register = async (req, res) => {
                     firstname_users: firstName,
                     lastname_users: lastName,
                     dateofbirth_users: birthDate,
-                    safeid_users: safeId // Zapisujemy unikalne safeId
+                    safeid_users: safeId, // Zapisujemy unikalne safeId
+                    type_users: "Normal" // Automatycznie ustawiamy wartość "Normal" dla kolumny type_users
                 }, (error, results) => {
                     if (error) throw error;
                     return res.json({ status: "success", success: "Użytkownik został zarejestrowany" });
                 });
+                
             }
         });
     }

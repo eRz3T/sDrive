@@ -6,19 +6,20 @@ const cookie = require("cookie-parser");
 const path = require('path');
 const PORT = process.env.PORT || 3000;
 
-
 app.use("/js", express.static(path.join(__dirname, "/public/js")));
 app.use("/css", express.static(path.join(__dirname, "/public/css")));
-app.use("/data", express.static(path.join(__dirname, "/data"))); // Nowa ścieżka do plików
+app.use("/data", express.static(path.join(__dirname, "/data")));
+
 app.use(cookie());
 app.use(express.json());
-app.use(express.urlencoded({ extended: true })); // Dodaj to, aby obsługiwać przesyłanie formularzy
+app.use(express.urlencoded({ extended: true }));
 
 app.set("view engine", "ejs");
 app.set("views", "./views");
 
 app.use("/", require("./routes/pages"));
-app.use("/api", require("./controllers/auth"));
+app.use("/api", require("./controllers/auth")); // Obsługa logowania/rejestracji
+
 
 app.listen(PORT, () => {
     console.log(`Serwer działa na porcie ${PORT}`);
@@ -43,5 +44,3 @@ dbFiles.connect((err) => {
         console.log("Połączono z bazą danych plików");
     }
 });
-
-

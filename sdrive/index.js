@@ -9,6 +9,7 @@ const PORT = process.env.PORT || 3000;
 app.use("/js", express.static(path.join(__dirname, "/public/js")));
 app.use("/css", express.static(path.join(__dirname, "/public/css")));
 app.use("/data", express.static(path.join(__dirname, "/data")));
+app.use("/images", express.static(path.join(__dirname, "/public/images"))); // Dodano ścieżkę do plików z obrazami
 
 app.use(cookie());
 app.use(express.json());
@@ -19,7 +20,6 @@ app.set("views", "./views");
 
 app.use("/", require("./routes/pages"));
 app.use("/api", require("./controllers/auth")); // Obsługa logowania/rejestracji
-
 
 app.listen(PORT, () => {
     console.log(`Serwer działa na porcie ${PORT}`);

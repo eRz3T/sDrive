@@ -3,19 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home</title>
+    <title>sDrive - Home page</title>
 
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+    body {
+            background-image: url('/images/xFc.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }
+
+    .card {
+        background-color: white; 
+        opacity: 1; 
+    }
+
+</style>
+
 </head>
 <body>
     <div class="container">
-        <h1 class="mt-4">Witaj, <%= user.firstname_users %>!</h1>
-        <form action="/logout" method="POST" class="mt-3">
-            <button type="submit" class="btn btn-primary">Wyloguj się</button>
-        </form>
+        <div class="d-flex align-items-center mt-4">
+            <h1 class="me-auto" style=" color: white" >Witaj, <%= user.firstname_users %>!</h1>
+            <form action="/logout" method="POST">
+                <button type="submit" class="btn btn-light ms-auto" style="color: black;">Wyloguj się</button>
+            </form>
+        </div>
 
-        <div class="row mt-5">
+        <!-- Sekcja powiadomień jako karta -->
+        <div class="card mt-3">
+            <div class="card-body">
+                <h3>Twoje powiadomienia</h3>
+                <ul class="list-group">
+                    <% if (notifications.length > 0) { %>
+                        <% notifications.forEach(function(notification) { %>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong><%= notification.head_notifications %></strong> <br>
+                                    <small><%= new Date(notification.date_notifications).toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit', year: 'numeric' }) %></small>
+                                </div>
+                                <div>
+                                    <button type="button" class="btn btn-info btn-sm" onclick="showNotificationContent('<%= notification.id_notifications %>')">Odczytaj</button>
+                                </div>
+                            </li>
+                        <% }); %>
+                    <% } else { %>
+                        <li class="list-group-item">Nie masz żadnych powiadomień</li>
+                    <% } %>
+                </ul>
+            </div>
+        </div>
+
+        <div class="row mt-3">
             <!-- Sekcja lewa -->
             <div class="col-md-4">
                 <!-- Pierwsza karta -->
@@ -35,8 +78,7 @@
                 <!-- Druga karta -->
                 <div class="card">
                     <div class="card-body">
-                        <h4>Znajomi</h4>
-                        <button type="button" class="btn btn-primary" id="showFriendsButton">Wyświetl listę znajomych</button>
+                        <button type="button" class="btn btn-primary w-100" id="showFriendsButton">Wyświetl listę znajomych</button>
                         <form id="friendSearchForm" class="mt-3">
                             <div class="d-flex align-items-center">
                                 <input type="email" class="form-control" id="friendEmail" name="friendEmail" placeholder="Dodaj znajomego" required>
@@ -50,53 +92,40 @@
 
             <!-- Sekcja prawa -->
             <div class="col-md-8">
-                <h3>Twoje powiadomienia</h3>
-                <ul class="list-group">
-                    <% if (notifications.length > 0) { %>
-                        <% notifications.forEach(function(notification) { %>
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <div>
-                                    <strong><%= notification.head_notifications %></strong> <br>
-                                    <small><%= new Date(notification.date_notifications).toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit', year: 'numeric' }) %></small>
-                                </div>
-                                <div>
-                                    <button type="button" class="btn btn-info btn-sm" onclick="showNotificationContent('<%= notification.id_notifications %>')">Odczytaj</button>
-                                </div>
-                            </li>
-                        <% }); %>
-                    <% } else { %>
-                        <li class="list-group-item">Nie masz żadnych powiadomień</li>
-                    <% } %>
-                </ul>
-
-                <h3 class="mt-5">Twoje pliki</h3>
-                <ul class="list-group">
-                    <% if (files.length > 0) { %>
-                        <% files.forEach(function(file) { %>
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <%= file.originalname_files %> <!-- Wyświetlanie oryginalnej nazwy pliku -->
-                                <div>
-                                    <a href="/download/<%= file.cryptedname_files %>" class="btn btn-success btn-sm">Pobierz</a>
-                                    <button type="button" class="btn btn-info btn-sm" onclick="showFileContent('<%= file.cryptedname_files %>')">Pokaż zawartość</button>
-                                    <button type="button" class="btn btn-danger btn-sm" onclick="deleteFile('<%= file.cryptedname_files %>')">Usuń</button>
-                                </div>
-                            </li>
-                        <% }); %>
-                    <% } else { %>
-                        <li class="list-group-item">Nie masz żadnych plików</li>
-                    <% } %>
-                </ul>
-
-                <h3 class="mt-5">Dodawanie plików do konta</h3>
-                <form id="uploadForm" enctype="multipart/form-data" class="mt-3">
-                    <div class="d-flex align-items-center">
-                        <input type="file" id="file" name="file" class="form-control me-2" required>
-                        <button type="submit" class="btn btn-primary">Prześlij</button>
+                <div class="card">
+                    <div class="card-body">
+                        <h3>Twoje pliki</h3>
+                        <ul class="list-group">
+                            <% if (files.length > 0) { %>
+                                <% files.forEach(function(file) { %>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <%= file.originalname_files %>
+                                        <div class="d-flex">
+                                            <a href="/download/<%= file.cryptedname_files %>" class="btn btn-success btn-sm btn-block me-2">Pobierz</a>
+                                            <button type="button" class="btn btn-info btn-sm btn-block me-2" onclick="showFileContent('<%= file.cryptedname_files %>')">Odczytaj</button>
+                                            <button type="button" class="btn btn-danger btn-sm btn-block" onclick="deleteFile('<%= file.cryptedname_files %>')">Usuń</button>
+                                        </div>
+                                    </li>
+                                <% }); %>
+                            <% } else { %>
+                                <li class="list-group-item">Nie masz żadnych plików</li>
+                            <% } %>
+                        </ul>
                     </div>
-                </form>
 
-                <div id="uploadError" class="text-danger mt-3" style="display: none;"></div>
-                <div id="uploadSuccess" class="text-success mt-3" style="display: none;"></div>
+                    <div class="card-body">
+                        <h3>Dodawanie plików do konta</h3>
+                        <form id="uploadForm" enctype="multipart/form-data" class="mt-3">
+                            <div class="d-flex align-items-center">
+                                <input type="file" id="file" name="file" class="form-control me-2" required>
+                                <button type="submit" class="btn btn-primary">Prześlij</button>
+                            </div>
+                        </form>
+
+                        <div id="uploadError" class="text-danger mt-3" style="display: none;"></div>
+                        <div id="uploadSuccess" class="text-success mt-3" style="display: none;"></div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -125,7 +154,6 @@
         </div>
     </div>
 </div>
-
 
 <!-- Modal do wyświetlania listy znajomych -->
 <div class="modal fade" id="friendsModal" tabindex="-1" aria-labelledby="friendsModalLabel" aria-hidden="true">

@@ -3,33 +3,82 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
+    <title>sDrive - Logowanie</title>
 
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            background-image: url('/images/xFc.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }
+
+    .card {
+        background-color: white; 
+        opacity: 1; 
+    }
+</style>
+
 </head>
 <body>
-    <div class="container">
-        <h1 class="mt-4">Zaloguj się</h1>
+    <div class="container text-center">
+        <h1 class="mt-4" style=" color: white">sDrive</h1>
+    </div>
 
-        <form id="loginForm" action="/api/login" method="POST" class="mt-3">
-            <div class="mb-3">
-                <label for="email" class="form-label">Email:</label>
-                <input type="email" class="form-control" id="email" name="email" required>
+    <div class="container mt-4">
+        <div class="row justify-content-center">
+            <!-- Sekcja lewa: Opis projektu -->
+            <div class="col-lg-5 d-flex align-items-stretch">
+                <div class="card w-100 bg-white" >
+                    <div class="card-body">
+                        <div class="container text-center">
+                            <h1 class="mt-3">Opis projektu</h1>
+                        </div>
+                        <h9>Celem niniejszej pracy dyplomowej jest wdrożenie aplikacji internetowej umożliwiającej 
+                            bezpieczne przechowywanie plików oraz zarządzanie dostępem do nich. W dobie intensywnej 
+                            digitalizacji danych rośnie potrzeba opracowania niezawodnych metod ochrony informacji 
+                            przechowywanych online.
+                        </h9>
+                    </div>
+                </div>
             </div>
-            <div class="mb-3">
-                <label for="password" class="form-label">Hasło:</label>
-                <input type="password" class="form-control" id="password" name="password" required>
-            </div>
-            <button type="submit" class="btn btn-primary">Zaloguj się</button>
-        </form>
 
-        <div id="error" class="text-danger mt-3" style="display: none;"></div>
-        <div id="success" class="text-success mt-3" style="display: none;"></div>
+            <!-- Sekcja prawa: Logowanie -->
+            <div class="col-lg-5 d-flex align-items-stretch">
+                <div class="card w-100 bg-white">
+                    <div class="card-body">
+                        <div class="container text-center">
+                            <h1 class="mt-3">Logowanie</h1>
+                        </div>
+
+                        <form id="loginForm" action="/api/login" method="POST" class="mt-3">
+                            <div class="mb-2">
+                                <input type="email" class="form-control" id="email" name="email" placeholder="Email" required>
+                            </div>
+                            <div class="mb-2">
+                                <input type="password" class="form-control" id="password" name="password" placeholder="Hasło" required>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <button type="submit" class="btn btn-primary w-50 me-1">Zaloguj się</button>
+                                <a href="/register" class="btn btn-secondary w-50 ms-1">Rejestracja</a>
+                            </div>
+                        </form>
+
+                        <div id="error" class="text-danger mt-3" style="display: none;"></div>
+                        <div id="success" class="text-success mt-3" style="display: none;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Bootstrap JS and Popper.js -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/js/login.js"></script>
+    
 </body>
 </html>

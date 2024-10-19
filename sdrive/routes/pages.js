@@ -67,12 +67,8 @@ router.get('/home', loggedIn, (req, res) => {
 
 
 // Inne trasy...
-router.get("/", loggedIn, (req, res) => {
-    if (req.user) {
-        res.render("welcome", { status: "loggedIn", user: req.user });
-    } else {
-        res.render("welcome", { status: "no", user: "nothing" });
-    }
+router.get("/", (req, res) => {
+    res.render("login");
 });
 
 router.get("/register", (req, res) => {

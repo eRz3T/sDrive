@@ -7,6 +7,9 @@ const { showFileContent, removeHtmlFile } = require("../controllers/fileControll
 const { getNotification } = require('../controllers/notifications');
 const { dbFiles } = require("../routes/db-config");
 const { dbLogins } = require("../routes/db-config");
+const { markNotificationAsRead } = require('../controllers/notifications');
+const { respondToFriendRequest } = require("../controllers/friends");
+const { getFriends, removeFriend } = require('../controllers/friends');
 const router = express.Router();
 
 
@@ -30,8 +33,17 @@ router.get("/download/:filename", loggedIn, downloadFile);
 
 router.get('/api/notification/:id', loggedIn, getNotification);
 
+// Nowa trasa do obsługi akceptacji/odrzucenia zaproszeń do znajomych
+router.post("/api/respond-friend-request", loggedIn, respondToFriendRequest);
+
+//Trasy obsługi znajomych - lista i usuwanie
+router.get('/api/get-friends', loggedIn, getFriends);
+router.post('/api/remove-friend', loggedIn, removeFriend);
+
+router.post('/api/notification/:id/read', markNotificationAsRead);
+
 // Trasa do strony "home" z weryfikacją, czy użytkownik jest zalogowany
-// Trasa do strony "home"
+// Pobierz listę powiadomień, które mają status "unread"
 router.get('/home', loggedIn, (req, res) => {
     if (req.user) {
         const safeId = req.user.safeid_users;
@@ -40,8 +52,8 @@ router.get('/home', loggedIn, (req, res) => {
         dbFiles.query('SELECT originalname_files, cryptedname_files FROM files WHERE cryptedowner_files = ?', [safeId], (err, files) => {
             if (err) throw err;
 
-            // Pobierz powiadomienia dla zalogowanego użytkownika na podstawie safeid_users
-            dbLogins.query('SELECT id_notifications, head_notifications, date_notifications FROM notifications WHERE user_notifications = ?', [safeId], (err, notifications) => {
+            // Pobierz tylko nieprzeczytane powiadomienia
+            dbLogins.query('SELECT id_notifications, head_notifications, date_notifications FROM notifications WHERE user_notifications = ? AND status_notifications = "unread"', [safeId], (err, notifications) => {
                 if (err) throw err;
 
                 // Przekaż listę plików i powiadomień do widoku home.ejs
@@ -52,6 +64,7 @@ router.get('/home', loggedIn, (req, res) => {
         res.redirect('/login');
     }
 });
+
 
 // Inne trasy...
 router.get("/", loggedIn, (req, res) => {

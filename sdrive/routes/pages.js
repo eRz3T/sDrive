@@ -4,14 +4,12 @@ const logout = require("../controllers/logout");
 const downloadFile = require("../controllers/download");
 const deleteFile = require("../controllers/deleteFile");
 const { showFileContent, removeHtmlFile } = require("../controllers/fileController"); // Import kontrolera plików
-const { getNotification } = require('../controllers/notifications');
+const { getNotification, markNotificationAsRead, getReadNotifications } = require('../controllers/notifications');
 const { dbFiles } = require("../routes/db-config");
 const { dbLogins } = require("../routes/db-config");
-const { markNotificationAsRead } = require('../controllers/notifications');
 const { respondToFriendRequest } = require("../controllers/friends");
 const { getFriends, removeFriend } = require('../controllers/friends');
 const router = express.Router();
-
 
 // Trasa do wyświetlania zawartości pliku
 router.get("/show/:filename", loggedIn, showFileContent);
@@ -25,25 +23,21 @@ router.delete("/delete/:filename", loggedIn, deleteFile);
 // Trasa do pobierania plików z weryfikacją, czy użytkownik jest zalogowany
 router.get("/download/:filename", loggedIn, downloadFile);
 
-// Trasa do usuwania plików z weryfikacją czy użytkownik jest zalogowany
-router.delete("/delete/:filename", loggedIn, deleteFile);
-
-// Trasa do pobierania plików z weryfikacją, czy użytkownik jest zalogowany
-router.get("/download/:filename", loggedIn, downloadFile);
-
+// Trasa do obsługi powiadomień
 router.get('/api/notification/:id', loggedIn, getNotification);
+router.post('/api/notification/:id/read', markNotificationAsRead);
+
+// Nowa trasa do wyświetlania przeczytanych powiadomień
+router.get('/api/read-notifications', loggedIn, getReadNotifications);
 
 // Nowa trasa do obsługi akceptacji/odrzucenia zaproszeń do znajomych
 router.post("/api/respond-friend-request", loggedIn, respondToFriendRequest);
 
-//Trasy obsługi znajomych - lista i usuwanie
+// Trasy obsługi znajomych - lista i usuwanie
 router.get('/api/get-friends', loggedIn, getFriends);
 router.post('/api/remove-friend', loggedIn, removeFriend);
 
-router.post('/api/notification/:id/read', markNotificationAsRead);
-
 // Trasa do strony "home" z weryfikacją, czy użytkownik jest zalogowany
-// Pobierz listę powiadomień, które mają status "unread"
 router.get('/home', loggedIn, (req, res) => {
     if (req.user) {
         const safeId = req.user.safeid_users;
@@ -64,7 +58,6 @@ router.get('/home', loggedIn, (req, res) => {
         res.redirect('/login');
     }
 });
-
 
 // Inne trasy...
 router.get("/", (req, res) => {

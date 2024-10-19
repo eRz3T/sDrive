@@ -63,3 +63,42 @@ function updateNotificationStatus(notificationId) {
         console.error('Błąd podczas aktualizacji statusu powiadomienia:', err);
     });
 }
+
+document.getElementById('readNotificationsButton').addEventListener('click', function() {
+    fetch('/api/read-notifications')
+        .then(response => response.json())
+        .then(data => {
+            const readNotificationsList = document.getElementById('readNotificationsList');
+            readNotificationsList.innerHTML = ''; // Wyczyszczenie starej zawartości
+
+            if (data.status === 'success') {
+                const notifications = data.notifications;
+
+                if (notifications.length > 0) {
+                    notifications.forEach(notification => {
+                        const listItem = document.createElement('li');
+                        listItem.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center');
+                        
+                        const notificationContent = `
+                            <div>
+                                <strong>${notification.head_notifications}</strong> <br>
+                                <small>${new Date(notification.date_notifications).toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit', year: 'numeric' })}</small>
+                            </div>`;
+                        
+                        listItem.innerHTML = notificationContent;
+                        readNotificationsList.appendChild(listItem);
+                    });
+                } else {
+                    const emptyMessage = document.createElement('li');
+                    emptyMessage.classList.add('list-group-item');
+                    emptyMessage.textContent = 'Nie masz przeczytanych powiadomień';
+                    readNotificationsList.appendChild(emptyMessage);
+                }
+            } else {
+                console.error('Błąd: ', data.error);
+            }
+        })
+        .catch(err => {
+            console.error('Błąd podczas pobierania przeczytanych powiadomień:', err);
+        });
+});

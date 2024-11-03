@@ -1,4 +1,6 @@
 function showNotificationContent(notificationId) {
+    console.log(`Wywołano showNotificationContent z notificationId=${notificationId}`); // Debugowanie
+
     fetch(`/api/notification/${notificationId}`)
         .then(response => response.json())
         .then(data => {
@@ -7,35 +9,31 @@ function showNotificationContent(notificationId) {
                 const notificationContent = document.getElementById('notificationContent');
                 const friendRequestActions = document.getElementById('friendRequestActions');
 
-                // Ustaw tytuł i treść powiadomienia
                 notificationContentLabel.textContent = 'Powiadomienie';
                 notificationContent.innerHTML = `<p>${data.notification.msg_notifications}</p>`;
 
-                // Sprawdź, czy to zaproszenie do znajomych
                 if (data.notification.type_notifications === 'friend_request') {
                     friendRequestActions.style.display = 'block';
                     document.getElementById('acceptButton').onclick = function() {
+                        console.log('Kliknięto Akceptuj'); // Debugowanie
                         respondToFriendRequest(data.notification.noteid_notifications, 'accept');
-                        updateNotificationStatus(notificationId); // Zmieniamy status po akceptacji
-                        location.reload();  // Odświeżenie strony po zaakceptowaniu
                     };
                     document.getElementById('denyButton').onclick = function() {
+                        console.log('Kliknięto Odmów'); // Debugowanie
                         respondToFriendRequest(data.notification.noteid_notifications, 'deny');
-                        updateNotificationStatus(notificationId); // Zmieniamy status po odmowie
-                        location.reload();  // Odświeżenie strony po odrzuceniu
                     };
                 } else {
                     friendRequestActions.style.display = 'none';
                 }
 
-                // Pokaż modal z powiadomieniem
-                let notificationModal = new bootstrap.Modal(document.getElementById('notificationContentModal'));
+                const notificationModal = new bootstrap.Modal(document.getElementById('notificationContentModal'));
                 notificationModal.show();
 
-                // Zmieniamy status powiadomienia na "read" po kliknięciu "Zamknij"
+                // Ustawienie obsługi kliknięcia przycisku "Zamknij"
                 document.querySelector('.btn-secondary').onclick = function() {
                     updateNotificationStatus(notificationId);
-                    location.reload();  // Odświeżenie strony po kliknięciu "Zamknij"
+                    notificationModal.hide();
+                    setTimeout(() => location.reload(), 100); // Odświeżenie po zamknięciu modala
                 };
             } else {
                 alert('Błąd podczas wyświetlania powiadomienia');
@@ -45,6 +43,8 @@ function showNotificationContent(notificationId) {
             console.error('Błąd podczas pobierania powiadomienia:', err);
         });
 }
+
+
 
 // Funkcja zmieniająca status powiadomienia na "read"
 function updateNotificationStatus(notificationId) {
@@ -77,12 +77,15 @@ document.getElementById('readNotificationsButton').addEventListener('click', fun
                 if (notifications.length > 0) {
                     notifications.forEach(notification => {
                         const listItem = document.createElement('li');
-                        listItem.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center');
+                        listItem.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-start');
                         
                         const notificationContent = `
                             <div>
-                                <strong>${notification.head_notifications}</strong> <br>
+                                <strong>${notification.head_notifications}</strong><br>
                                 <small>${new Date(notification.date_notifications).toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit', year: 'numeric' })}</small>
+                            </div>
+                            <div class="text-start ms-auto" style="max-width: 60%;">
+                                <p>${notification.msg_notifications}</p> <!-- Treść wiadomości -->
                             </div>`;
                         
                         listItem.innerHTML = notificationContent;
@@ -102,3 +105,5 @@ document.getElementById('readNotificationsButton').addEventListener('click', fun
             console.error('Błąd podczas pobierania przeczytanych powiadomień:', err);
         });
 });
+
+

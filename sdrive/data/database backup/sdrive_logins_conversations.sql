@@ -16,33 +16,29 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `users`
+-- Table structure for table `conversations`
 --
 
-DROP TABLE IF EXISTS `users`;
+DROP TABLE IF EXISTS `conversations`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `users` (
-  `id_users` int NOT NULL AUTO_INCREMENT,
-  `email_users` varchar(100) NOT NULL,
-  `password_users` varchar(100) NOT NULL,
-  `firstname_users` varchar(100) NOT NULL,
-  `lastname_users` varchar(100) NOT NULL,
-  `dateofbirth_users` date NOT NULL,
-  `safeid_users` varchar(100) NOT NULL,
-  `type_users` varchar(45) NOT NULL,
-  PRIMARY KEY (`id_users`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+CREATE TABLE `conversations` (
+  `id_conversations` int NOT NULL AUTO_INCREMENT,
+  `ppl1_conversations` varchar(100) NOT NULL,
+  `ppl2_conversations` varchar(100) NOT NULL,
+  `codemsg_conversations` varchar(100) NOT NULL,
+  PRIMARY KEY (`id_conversations`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `users`
+-- Dumping data for table `conversations`
 --
 
-LOCK TABLES `users` WRITE;
-/*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (3,'tet@tet','$2a$08$auFK/b1M.zIxq0dYjsWDBOgRESfGYZxc1j/BsrZi0Z8pV28C9p0BC','tet','tet','1998-07-27','$2a$10$Itt9nmjTNY3qXsLbNkpFc.my5GAWBeWoGw.C5IRLCAJV2T.hqu.hm','Normal'),(5,'bartek.c12@gmail.com','$2a$08$T3yWQON6bWPvKcxPGoJlcekukThnYRmZKlm5Oi9/LB0eZgl0kwr5S','Bartek','Cetera','1998-07-27','7pGVI2sUuJvXPW9d','Normal'),(6,'cetera@op.pl','$2a$08$qzpqtcZMsm1y5BJlwWl.qO4h6SIwOtH60u2RelQtAQ1dsLCtyPe7.','Piotrek','Cetera','1988-07-27','BV@URNRYAR@Gp@zr','Normal');
-/*!40000 ALTER TABLE `users` ENABLE KEYS */;
+LOCK TABLES `conversations` WRITE;
+/*!40000 ALTER TABLE `conversations` DISABLE KEYS */;
+INSERT INTO `conversations` VALUES (1,'7pGVI2sUuJvXPW9d','BV@URNRYAR@Gp@zr','$2a$10$JYBGYCi4IpqKi6fJtRiFsOxfjh3rs4igdayQye3JpoM7cBlunY6r6');
+/*!40000 ALTER TABLE `conversations` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 

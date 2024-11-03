@@ -142,3 +142,12 @@ function inviteFriend(friendId) {
         console.error('Błąd zapraszania znajomego:', err);
     });
 }
+
+let fileToShareCryptedName = null;
+
+function openShareModal(cryptedname, originalname) {
+    fileToShareCryptedName = cryptedname;
+    document.getElementById("fileToShareName").textContent = originalname;
+    const shareFileModal = new bootstrap.Modal(document.getElementById("shareFileModal"));
+    shareFileModal.show();
+}

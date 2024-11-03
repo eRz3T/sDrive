@@ -25,16 +25,17 @@ const searchFriend = (req, res) => {
 // Funkcja pobierająca listę aktywnych znajomych
 const getFriends = (req, res) => {
     const userId = req.user.id_users;
+    console.log(`Pobieranie znajomych dla użytkownika ID: ${userId}`);
 
-    // Pobierz aktywnych znajomych
     dbLogins.query(`
-        SELECT users.id_users, users.firstname_users, users.lastname_users, users.email_users
+        SELECT users.id_users, users.firstname_users, users.lastname_users, users.safeid_users
         FROM friends
         JOIN users ON (friends.id_user_1_friends = users.id_users OR friends.id_user_2_friends = users.id_users)
         WHERE (friends.id_user_1_friends = ? OR friends.id_user_2_friends = ?) 
         AND friends.status_friends = "Active" AND users.id_users != ?`,
         [userId, userId, userId], (err, results) => {
             if (err) {
+                console.error('Błąd pobierania znajomych:', err);
                 return res.json({ status: 'error', error: 'Błąd pobierania znajomych' });
             }
             console.log('Pobrano listę znajomych:', results); // Debug
@@ -44,21 +45,16 @@ const getFriends = (req, res) => {
 };
 
 
+
 // Funkcja odpowiadająca na zaproszenie do znajomych (akceptacja/odmowa)
 const respondToFriendRequest = (req, res) => {
     const { noteId, action } = req.body;
     
-    // Ustaw status w zależności od działania
-    let newStatus = '';
-    if (action === 'accept') {
-        newStatus = 'Active';
-    } else if (action === 'deny') {
-        newStatus = 'Denied';
-    } else {
+    let newStatus = action === 'accept' ? 'Active' : 'Denied';
+    if (!['accept', 'deny'].includes(action)) {
         return res.json({ status: 'error', error: 'Nieprawidłowa akcja' });
     }
 
-    // Znajdź odpowiedni wpis w tabeli friends na podstawie kodu noteId
     dbLogins.query(
         'SELECT * FROM friends WHERE noteid_notifications_friends = ?',
         [noteId],
@@ -72,22 +68,66 @@ const respondToFriendRequest = (req, res) => {
             }
 
             const friendEntryId = result[0].id_friends;
+            const inviterId = result[0].id_user_1_friends;  // ID zapraszającego użytkownika
+            const accepterId = result[0].id_user_2_friends;  // ID użytkownika akceptującego zaproszenie
 
-            // Zaktualizuj status w tabeli friends
             dbLogins.query(
                 'UPDATE friends SET status_friends = ? WHERE id_friends = ?',
                 [newStatus, friendEntryId],
-                (err, updateResult) => {
+                (err) => {
                     if (err) {
                         return res.json({ status: 'error', error: 'Błąd aktualizacji statusu' });
                     }
 
-                    return res.json({ status: 'success', success: `Zaproszenie zostało ${action === 'accept' ? 'zaakceptowane' : 'odrzucone'}.` });
+                    // Zaktualizuj status powiadomienia na "read"
+                    dbLogins.query(
+                        'UPDATE notifications SET status_notifications = "read" WHERE noteid_notifications = ?',
+                        [noteId],
+                        (err) => {
+                            if (err) {
+                                return res.json({ status: 'error', error: 'Błąd aktualizacji statusu powiadomienia' });
+                            }
+
+                            // Jeśli zaakceptowano zaproszenie, dodaj nowe powiadomienie dla zapraszającego
+                            if (action === 'accept') {
+                                // Znajdź `safeid_users` i email użytkownika zapraszającego
+                                dbLogins.query(
+                                    'SELECT safeid_users, email_users FROM users WHERE id_users = ?',
+                                    [inviterId],
+                                    (err, inviterResult) => {
+                                        if (err || inviterResult.length === 0) {
+                                            return res.json({ status: 'error', error: 'Błąd pobierania danych zapraszającego' });
+                                        }
+
+                                        const inviterSafeId = inviterResult[0].safeid_users;
+                                        const accepterEmail = req.user.email_users; // Email akceptującego
+
+                                        const message = `Użytkownik o mailu ${accepterEmail} zaakceptował twoje zaproszenie do znajomych.`;
+
+                                        dbLogins.query(
+                                            'INSERT INTO notifications (user_notifications, head_notifications, msg_notifications, type_notifications, status_notifications, date_notifications, dispatcher_notifications) VALUES (?, "Nowy znajomy", ?, "friend_response", "unread", CURDATE(), ?)',
+                                            [inviterSafeId, message, accepterEmail],
+                                            (err) => {
+                                                if (err) {
+                                                    return res.json({ status: 'error', error: 'Błąd podczas dodawania powiadomienia' });
+                                                }
+                                                return res.json({ status: 'success', success: 'Zaproszenie zaakceptowane i powiadomienie wysłane.' });
+                                            }
+                                        );
+                                    }
+                                );
+                            } else {
+                                return res.json({ status: 'success', success: 'Zaproszenie zostało odrzucone.' });
+                            }
+                        }
+                    );
                 }
             );
         }
     );
 };
+
+
 
 // Funkcja sprawdzająca unikalność kodu
 const isNoteIdUnique = (noteId) => {

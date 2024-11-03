@@ -7,84 +7,83 @@
 
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-
     <style>
-    body {
+        .btn-custom {
+            width: 80px; 
+            color: #2460e2; 
+            border-color: #2460e2; 
+            background-color: white; 
+        }
+        .btn-custom:hover {
+            background-color: #2460e2; 
+            color: white; 
+        }
+        body {
             background-image: url('/images/xFc.png');
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
             background-attachment: fixed;
         }
-
-    .card {
-        background-color: white; 
-        opacity: 1; 
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
-        border-radius: 5px; 
-    }
-
-</style>
-
+        .card {
+            background-color: white; 
+            opacity: 1; 
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
+            border-radius: 5px; 
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <div class="d-flex align-items-center mt-4">
-            <h1 class="me-auto" style=" color: white" >Witaj, <%= user.firstname_users %>!</h1>
+            <h1 class="me-auto" style="color: white">Witaj, <%= user.firstname_users %>!</h1>
             <form action="/logout" method="POST">
                 <button type="submit" class="btn btn-light ms-auto" style="color: black;">Wyloguj się</button>
             </form>
         </div>
 
- <!-- Sekcja powiadomień jako karta -->
-<div class="card mt-3">
-    <div class="card-body">
+            <!-- Sekcja powiadomień -->
+            <div class="card mt-3">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h4 class="mb-0">Powiadomienia</h4>
+                        <button type="button" class="btn btn-primary btn-sm" id="readNotificationsButton" data-bs-toggle="modal" data-bs-target="#readNotificationsModal">
+                            Przeczytane powiadomienia
+                        </button>
+                    </div>
+                    <ul class="list-group">
+                        <% if (notifications.length > 0) { %>
+                            <% notifications.forEach(function(notification) { %>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong><%= notification.head_notifications %></strong><br>
+                                        <small><%= new Date(notification.date_notifications).toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit', year: 'numeric' }) %></small>
+                                    </div>
+                                    <div>
+                                        <button type="button" class="btn btn-info btn-sm" onclick="showNotificationContent('<%= notification.id_notifications %>')">Odczytaj</button>
+                                    </div>
+                                </li>
+                            <% }); %>
+                        <% } else { %>
+                            <li class="list-group-item">Nie masz żadnych powiadomień</li>
+                        <% } %>
+                    </ul>
+                    <div class="text-center mt-3">
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#messagesModal" onclick="loadConversations()">Wiadomości</button>
 
-        <div class="container text-center">
-            <h3>Powiadomienia</h3>
-        </div>
-
-        <ul class="list-group">
-            <% if (notifications.length > 0) { %>
-                <% notifications.forEach(function(notification) { %>
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <div>
-                            <strong><%= notification.head_notifications %></strong> <br>
-                            <small><%= new Date(notification.date_notifications).toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit', year: 'numeric' }) %></small>
-                        </div>
-                        <div>
-                            <button type="button" class="btn btn-info btn-sm" onclick="showNotificationContent('<%= notification.id_notifications %>')">Odczytaj</button>
-                        </div>
-                    </li>
-                <% }); %>
-            <% } else { %>
-                <li class="list-group-item">Nie masz żadnych powiadomień</li>
-            <% } %>
-        </ul>
-
-        <!-- Przycisk Przeczytane -->
-        <div class="text-center mt-3">
-            <button type="button" class="btn btn-primary w-100" id="readNotificationsButton" data-bs-toggle="modal" data-bs-target="#readNotificationsModal">
-                Przeczytane powiadomienia
-            </button>
-        </div>
-
-    </div>
-</div>
+                    </div>
+                </div>
+            </div>
 
 
         <div class="row mt-3">
-            <!-- Sekcja lewa -->
+            <!-- Informacje o użytkowniku i znajomych -->
             <div class="col-md-4">
-                <!-- Pierwsza karta -->
                 <div class="card mb-3">
                     <div class="card-body">
-
-                <div class="container text-center">
-                    <h4>Informacje użytkownika</h4>
-                </div>
-
-                        
+                        <div class="container text-center">
+                            <h4>Informacje użytkownika</h4>
+                        </div>
                         <ul>
                             <li>Imię: <%= user.firstname_users %></li>
                             <li>Nazwisko: <%= user.lastname_users %></li>
@@ -94,8 +93,6 @@
                         </ul>
                     </div>
                 </div>
-
-                <!-- Druga karta -->
                 <div class="card">
                     <div class="card-body">
                         <button type="button" class="btn btn-primary w-100" id="showFriendsButton">Wyświetl listę znajomych</button>
@@ -110,48 +107,87 @@
                 </div>
             </div>
 
-            <!-- Sekcja prawa -->
+            <!-- Sekcja z plikami -->
             <div class="col-md-8">
-                <div class="card">
-                    <div class="card-body">
-
-                <div class="container text-center">
-                    <h3>Twoje pliki</h3>
-                </div>
-
-                        
-                        <ul class="list-group">
-                            <% if (files.length > 0) { %>
-                                <% files.forEach(function(file) { %>
-                                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                                        <%= file.originalname_files %>
-                                        <div class="d-flex">
-                                            <a href="/download/<%= file.cryptedname_files %>" class="btn btn-success btn-sm btn-block me-2">Pobierz</a>
-                                            <button type="button" class="btn btn-info btn-sm btn-block me-2" onclick="showFileContent('<%= file.cryptedname_files %>')">Odczytaj</button>
-                                            <button type="button" class="btn btn-danger btn-sm btn-block" onclick="deleteFile('<%= file.cryptedname_files %>')">Usuń</button>
-                                        </div>
-                                    </li>
-                                <% }); %>
-                            <% } else { %>
-                                <li class="list-group-item">Nie masz żadnych plików</li>
-                            <% } %>
-                        </ul>
+                <div class="row mt-3">
+                    <!-- Twoje pliki -->
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h5>Twoje pliki</h5>
+                                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#allUserFilesModal">Pozostałe</button>
+                                </div>
+                                <ul class="list-group mt-2">
+                                    <% for (let i = 0; i < 3; i++) { %>
+                                        <% if (files[i]) { %>
+                                            <li class="list-group-item">
+                                                <div class="text-center"><strong><%= files[i].originalname_files %></strong></div>
+                                                <div class="d-flex justify-content-center mt-2 gap-1">
+                                                    <a href="/download/<%= files[i].cryptedname_files %>" class="btn btn-custom btn-sm">Pobierz</a>
+                                                    <button type="button" class="btn btn-custom btn-sm" onclick="showFileContent('<%= files[i].cryptedname_files %>')">Odczytaj</button>
+                                                    <button type="button" class="btn btn-custom btn-sm" onclick="deleteFile('<%= files[i].cryptedname_files %>')">Usuń</button>
+                                                    <button type="button" class="btn btn-custom btn-sm" onclick="openShareOwnFileModal('<%= files[i].cryptedname_files %>', '<%= files[i].originalname_files %>')">Wyślij</button>
+                                                </div>
+                                            </li>
+                                        <% } else { %>
+                                            <li class="list-group-item d-flex justify-content-center align-items-center">
+                                                <span class="text-muted">Brak pliku</span>
+                                            </li>
+                                        <% } %>
+                                    <% } %>
+                                </ul>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="card-body">
-
-                <div class="container text-center">
-                    <h3>Dodawanie plików do konta</h3>
+                    <!-- Udostępnione Tobie pliki -->
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h5>Udostępnione Tobie pliki</h5>
+                                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#allSharedFilesModal">Pozostałe</button>
+                                </div>
+                                <ul class="list-group mt-2">
+                                    <% for (let i = 0; i < 3; i++) { %>
+                                        <% if (sharedFiles[i]) { %>
+                                            <li class="list-group-item">
+                                                <div class="text-center"><strong><%= sharedFiles[i].truename_fshare %></strong></div>
+                                                <div class="d-flex justify-content-center mt-2 gap-1">
+                                                    <a href="/download/shared/<%= sharedFiles[i].file_fshare %>" class="btn btn-custom btn-sm">Pobierz</a>
+                                                    <button type="button" class="btn btn-custom btn-sm" onclick="showFileContent('<%= sharedFiles[i].file_fshare %>', true)">Odczytaj</button>
+                                                    <button type="button" class="btn btn-custom btn-sm" onclick="openSharedFileModal('<%= sharedFiles[i].file_fshare %>', '<%= sharedFiles[i].truename_fshare %>')">Wyślij</button>
+                                                    <button type="button" class="btn btn-custom btn-sm" onclick="deleteSharedFile('<%= sharedFiles[i].file_fshare %>')">Usuń</button>
+                                                </div>
+                                            </li>
+                                        <% } else { %>
+                                            <li class="list-group-item d-flex justify-content-center align-items-center">
+                                                <span class="text-muted">Brak pliku</span>
+                                            </li>
+                                        <% } %>
+                                    <% } %>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+            
+        
+    
 
-                        
+                <!-- Sekcja dodawania plików -->
+                <div class="card mt-3">
+                    <div class="card-body">
+                        <div class="container text-center">
+                            <h5>Dodawanie plików do konta</h5>
+                        </div>
                         <form id="uploadForm" enctype="multipart/form-data" class="mt-3">
                             <div class="d-flex align-items-center">
                                 <input type="file" id="file" name="file" class="form-control me-2" required>
                                 <button type="submit" class="btn btn-primary">Prześlij</button>
                             </div>
                         </form>
-
                         <div id="uploadError" class="text-danger mt-3" style="display: none;"></div>
                         <div id="uploadSuccess" class="text-success mt-3" style="display: none;"></div>
                     </div>
@@ -159,6 +195,151 @@
             </div>
         </div>
     </div>
+    
+
+<!-- OKNA MODALNE -->
+
+
+
+
+<!-- Modal z listą konwersacji -->
+<div class="modal fade" id="messagesModal" tabindex="-1" aria-labelledby="messagesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="messagesModalLabel">Twoje konwersacje</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#newConversationModal">Rozpocznij nową konwersację</button>
+                <ul class="list-group" id="conversationList">
+                    <!-- Lista konwersacji będzie ładowana dynamicznie -->
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal do rozpoczęcia nowej konwersacji -->
+<div class="modal fade" id="newConversationModal" tabindex="-1" aria-labelledby="newConversationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="newConversationModalLabel">Nowa Konwersacja</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <label for="recipientSelect" class="form-label">Wybierz znajomego:</label>
+                <select id="recipientSelect" class="form-select">
+                    <% friends.forEach(function(friend) { %>
+                        <option value="<%= friend.safeid_users %>">
+                            <%= friend.firstname_users %> <%= friend.lastname_users %>
+                        </option>
+                    <% }); %>
+                </select>
+                <div class="mt-3">
+                    <label for="messageContent" class="form-label">Wiadomość:</label>
+                    <textarea id="messageContent" class="form-control" rows="3"></textarea>
+                </div>
+                <button type="button" class="btn btn-primary mt-3" onclick="startNewConversation()">Wyślij</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal do wyświetlania wiadomości w konwersacji -->
+<div class="modal fade" id="conversationMessagesModal" tabindex="-1" aria-hidden="true" data-codemsg="">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-body">
+                <!-- Pole tekstowe do wpisywania wiadomości -->
+                <div class="mb-3">
+                    <textarea id="newMessageContent" class="form-control" placeholder="Napisz wiadomość..."></textarea>
+                    <button type="button" class="btn btn-primary mt-2" onclick="sendMessage()">Wyślij</button>
+                </div>
+                <!-- Lista wiadomości wyświetlana w kolejności od najnowszych do najstarszych -->
+                <ul id="messageList" class="list-group flex-column-reverse">
+                    <!-- Lista wiadomości będzie ładowana dynamicznie -->
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Modal do wyświetlania wszystkich plików użytkownika -->
+<div class="modal fade" id="allUserFilesModal" tabindex="-1" aria-labelledby="allUserFilesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="allUserFilesModalLabel">Wszystkie Twoje pliki</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <ul class="list-group">
+                    <% allUserFiles.forEach(function(file) { %>
+                        <li class="list-group-item d-flex align-items-center">
+                            <!-- Nazwa pliku i data przesłania -->
+                            <div class="me-auto">
+                                <div><strong><%= file.originalname_files %></strong></div>
+                                <small class="text-muted">Data przesłania: <%= new Date(file.dateofupload_files).toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit', year: 'numeric' }) %></small>
+                            </div>
+                            <!-- Przyciski akcji -->
+                            <div class="d-flex flex-column gap-1">
+                                <div class="d-flex gap-1">
+                                    <a href="/download/<%= file.cryptedname_files %>" class="btn btn-custom btn-sm">Pobierz</a>
+                                    <button type="button" class="btn btn-custom btn-sm" onclick="showFileContent('<%= file.cryptedname_files %>')">Odczytaj</button>
+                                </div>
+                                <div class="d-flex gap-1 mt-1">
+                                    <button type="button" class="btn btn-custom btn-sm" onclick="deleteFile('<%= file.cryptedname_files %>')">Usuń</button>
+                                    <button type="button" class="btn btn-custom btn-sm" onclick="openShareModal('<%= file.cryptedname_files %>', '<%= file.originalname_files %>')">Wyślij</button>
+                                </div>
+                            </div>
+                        </li>
+                    <% }); %>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal do wyświetlania wszystkich udostępnionych Tobie plików -->
+<div class="modal fade" id="allSharedFilesModal" tabindex="-1" aria-labelledby="allSharedFilesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="allSharedFilesModalLabel">Wszystkie udostępnione Tobie pliki</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <ul class="list-group">
+                    <% allSharedFiles.forEach(function(sharedFile) { %>
+                        <li class="list-group-item d-flex align-items-center">
+                            <div class="me-auto">
+                                <div><strong><%= sharedFile.truename_fshare %></strong></div>
+                                <small class="text-muted">Data udostępnienia: <%= new Date(sharedFile.date_fshare).toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit', year: 'numeric' }) %></small>
+                            </div>
+                            <div class="d-flex flex-column gap-1">
+                                <div class="d-flex gap-1">
+                                    <a href="/download/shared/<%= sharedFile.file_fshare %>" class="btn btn-custom btn-sm w-100">Pobierz</a>
+                                    <button type="button" class="btn btn-custom btn-sm w-100" onclick="showFileContent('<%= sharedFile.file_fshare %>', true)">Odczytaj</button>
+                                </div>
+                                <div class="d-flex gap-1 mt-1">
+                                    <button type="button" class="btn btn-custom btn-sm" onclick="openShareModal('<%= sharedFile.file_fshare %>', '<%= sharedFile.truename_fshare %>', true)">Wyślij</button>
+                                    <button type="button" class="btn btn-custom btn-sm" onclick="deleteSharedFile('<%= sharedFile.file_fshare %>')">Usuń</button>
+                                </div>
+                            </div>
+                        </li>
+                    <% }); %>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
 
    <!-- Modal do wyświetlania powiadomienia -->
 <div class="modal fade" id="notificationContentModal" tabindex="-1" aria-labelledby="notificationContentLabel" aria-hidden="true">
@@ -260,6 +441,70 @@
 </div>
 
 
+
+<!-- Modale -->
+<div class="modal fade" id="shareFileModal" tabindex="-1" aria-labelledby="shareFileModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="shareFileModalLabel">Udostępnij plik</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Wybierz znajomego, któremu chcesz udostępnić plik "<span id="fileToShareName"></span>"</p>
+                <input type="hidden" id="fileToShare" />
+                <select id="friendSelect" class="form-select">
+                    <% if (friends && friends.length > 0) { %>
+                        <% friends.forEach(function(friend) { %>
+                            <option value="<%= friend.safeid_users %>">
+                                <%= friend.firstname_users %> <%= friend.lastname_users %>
+                            </option>
+                        <% }); %>
+                    <% } else { %>
+                        <option>Brak znajomych do udostępnienia</option>
+                    <% } %>
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Anuluj</button>
+                <button type="button" class="btn btn-primary" onclick="shareFile()">Wyślij</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="shareSharedFileModal" tabindex="-1" aria-labelledby="shareSharedFileModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="shareSharedFileModalLabel">Udostępnij udostępniony plik</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Wybierz znajomego, któremu chcesz ponownie udostępnić plik "<span id="sharedFileToShareName"></span>"</p>
+                <input type="hidden" id="sharedFileToShare" />
+                <select id="sharedFriendSelect" class="form-select">
+                    <% if (friends && friends.length > 0) { %>
+                        <% friends.forEach(function(friend) { %>
+                            <option value="<%= friend.safeid_users %>">
+                                <%= friend.firstname_users %> <%= friend.lastname_users %>
+                            </option>
+                        <% }); %>
+                    <% } else { %>
+                        <option>Brak znajomych do udostępnienia</option>
+                    <% } %>
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Anuluj</button>
+                <button type="button" class="btn btn-primary" onclick="shareSharedFile()">Wyślij</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
     <!-- Bootstrap JS and Popper.js -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/js/deleteFile.js"></script>
@@ -268,6 +513,9 @@
     <script src="/js/friends.js"></script>
     <script src="/js/notifications.js"></script>
     <script src="/js/respondToFriendRequest.js"></script>
+    <script src="/js/fshareFile.js"></script>
+    <script src="/js/fshareShared.js"></script>
+    <script src="/js/messages.js"></script>
 
 </body>
 </html>

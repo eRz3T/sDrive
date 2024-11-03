@@ -1,0 +1,459 @@
+/views
+	home.ejs
+{<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>sDrive - Home page</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+    body {
+            background-image: url('/images/xFc.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }
+
+    .card {
+        background-color: white; 
+        opacity: 1; 
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
+        border-radius: 5px; 
+    }
+
+</style>
+
+</head>
+<body>
+    <div class="container">
+        <div class="d-flex align-items-center mt-4">
+            <h1 class="me-auto" style=" color: white" >Witaj, <%= user.firstname_users %>!</h1>
+            <form action="/logout" method="POST">
+                <button type="submit" class="btn btn-light ms-auto" style="color: black;">Wyloguj się</button>
+            </form>
+        </div>
+
+ <!-- Sekcja powiadomień jako karta -->
+<div class="card mt-3">
+    <div class="card-body">
+
+        <div class="container text-center">
+            <h3>Powiadomienia</h3>
+        </div>
+
+        <ul class="list-group">
+            <% if (notifications.length > 0) { %>
+                <% notifications.forEach(function(notification) { %>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong><%= notification.head_notifications %></strong> <br>
+                            <small><%= new Date(notification.date_notifications).toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit', year: 'numeric' }) %></small>
+                        </div>
+                        <div>
+                            <button type="button" class="btn btn-info btn-sm" onclick="showNotificationContent('<%= notification.id_notifications %>')">Odczytaj</button>
+                        </div>
+                    </li>
+                <% }); %>
+            <% } else { %>
+                <li class="list-group-item">Nie masz żadnych powiadomień</li>
+            <% } %>
+        </ul>
+
+        <!-- Przycisk Przeczytane -->
+        <div class="text-center mt-3">
+            <button type="button" class="btn btn-primary w-100" id="readNotificationsButton" data-bs-toggle="modal" data-bs-target="#readNotificationsModal">
+                Przeczytane powiadomienia
+            </button>
+        </div>
+
+    </div>
+</div>
+
+
+        <div class="row mt-3">
+            <!-- Sekcja lewa -->
+            <div class="col-md-4">
+                <!-- Pierwsza karta -->
+                <div class="card mb-3">
+                    <div class="card-body">
+
+                <div class="container text-center">
+                    <h4>Informacje użytkownika</h4>
+                </div>
+
+                        
+                        <ul>
+                            <li>Imię: <%= user.firstname_users %></li>
+                            <li>Nazwisko: <%= user.lastname_users %></li>
+                            <li>Email: <%= user.email_users %></li>
+                            <li>Typ użytkownika: <%= user.type_users %></li>
+                            <li>Data urodzenia: <%= new Date(user.dateofbirth_users).toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit', year: 'numeric' }) %></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Druga karta -->
+                <div class="card">
+                    <div class="card-body">
+                        <button type="button" class="btn btn-primary w-100" id="showFriendsButton">Wyświetl listę znajomych</button>
+                        <form id="friendSearchForm" class="mt-3">
+                            <div class="d-flex align-items-center">
+                                <input type="email" class="form-control" id="friendEmail" name="friendEmail" placeholder="Dodaj znajomego" required>
+                                <button type="submit" class="btn btn-primary ms-2">Wyszukaj</button>
+                            </div>
+                        </form>
+                        <div id="friendSearchResult" class="mt-3"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sekcja prawa -->
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-body">
+
+                <div class="container text-center">
+                    <h3>Twoje pliki</h3>
+                </div>
+
+                        
+                        <ul class="list-group">
+                            <% if (files.length > 0) { %>
+                                <% files.forEach(function(file) { %>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <%= file.originalname_files %>
+                                        <div class="d-flex">
+                                            <a href="/download/<%= file.cryptedname_files %>" class="btn btn-success btn-sm btn-block me-2">Pobierz</a>
+                                            <button type="button" class="btn btn-info btn-sm btn-block me-2" onclick="showFileContent('<%= file.cryptedname_files %>')">Odczytaj</button>
+                                            <button type="button" class="btn btn-danger btn-sm btn-block" onclick="deleteFile('<%= file.cryptedname_files %>')">Usuń</button>
+                                        </div>
+                                    </li>
+                                <% }); %>
+                            <% } else { %>
+                                <li class="list-group-item">Nie masz żadnych plików</li>
+                            <% } %>
+                        </ul>
+                    </div>
+
+                    <div class="card-body">
+
+                <div class="container text-center">
+                    <h3>Dodawanie plików do konta</h3>
+                </div>
+
+                        
+                        <form id="uploadForm" enctype="multipart/form-data" class="mt-3">
+                            <div class="d-flex align-items-center">
+                                <input type="file" id="file" name="file" class="form-control me-2" required>
+                                <button type="submit" class="btn btn-primary">Prześlij</button>
+                            </div>
+                        </form>
+
+                        <div id="uploadError" class="text-danger mt-3" style="display: none;"></div>
+                        <div id="uploadSuccess" class="text-success mt-3" style="display: none;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+   <!-- Modal do wyświetlania powiadomienia -->
+<div class="modal fade" id="notificationContentModal" tabindex="-1" aria-labelledby="notificationContentLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <nav class="navbar navbar-expand-lg navbar-light bg-light">
+                <div class="container-fluid">
+                    <span class="navbar-brand" id="notificationContentLabel">Powiadomienie</span>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Zamknij</button>
+                </div>
+            </nav>
+
+            <div class="modal-body">
+                <div id="notificationContent"></div>
+                <!-- Przyciski Akceptuj i Odmów -->
+                <div id="friendRequestActions" style="display: none;">
+                    <button class="btn btn-success" id="acceptButton">Akceptuj</button>
+                    <button class="btn btn-danger" id="denyButton">Odmów</button>
+                </div>
+            </div>
+
+            <div class="modal-footer"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal do wyświetlania listy znajomych -->
+<div class="modal fade" id="friendsModal" tabindex="-1" aria-labelledby="friendsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <nav class="navbar navbar-expand-lg navbar-light bg-light">
+                    <div class="container-fluid">
+                        <span class="navbar-brand" id="friendsModalLabel">Lista znajomych</span>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Zamknij</button>
+                    </div>
+                </nav>
+                <div class="modal-body">
+                    <ul id="friendsList" class="list-group"></ul> <!-- Tutaj pojawi się lista znajomych -->
+                </div>
+                <div class="modal-footer"></div>
+            </div>
+        </div>
+</div>
+
+<!-- Modal do wyświetlania informacji o znalezionym użytkowniku -->
+<div class="modal fade" id="friendModal" tabindex="-1" aria-labelledby="friendModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <nav class="navbar navbar-expand-lg navbar-light bg-light">
+                <div class="container-fluid">
+                    <span class="navbar-brand" id="friendModalLabel">Znajomy</span>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Zamknij</button>
+                </div>
+            </nav>
+            <div class="modal-body">
+                <p id="friendEmailInfo"></p>
+                <button id="inviteButton" class="btn btn-success">Zaproś do znajomych</button>
+            </div>
+            <div class="modal-footer"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal do wyświetlania zawartości pliku -->
+<div class="modal fade" id="fileContentModal" tabindex="-1" aria-labelledby="fileContentLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <nav class="navbar navbar-expand-lg navbar-light bg-light">
+                <div class="container-fluid">
+                    <span class="navbar-brand" id="fileContentLabel">Zawartość pliku</span>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Zamknij</button>
+                </div>
+            </nav>
+            <div class="modal-body">
+                <div id="fileContent"></div> <!-- Tu będzie dynamicznie wczytana zawartość pliku -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Zamknij</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal z przeczytanymi powiadomieniami -->
+<div class="modal fade" id="readNotificationsModal" tabindex="-1" aria-labelledby="readNotificationsLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="readNotificationsLabel">Przeczytane Powiadomienia</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <ul id="readNotificationsList" class="list-group">
+                    <!-- Powiadomienia będą tutaj wstawiane dynamicznie -->
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+    <!-- Bootstrap JS and Popper.js -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/deleteFile.js"></script>
+    <script src="/js/upload.js"></script>
+    <script src="/js/showfile.js"></script>
+    <script src="/js/friends.js"></script>
+    <script src="/js/notifications.js"></script>
+    <script src="/js/respondToFriendRequest.js"></script>
+
+</body>
+</html>
+}
+
+	login.ejs
+{<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>sDrive - Logowanie</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            background-image: url('/images/xFc.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }
+
+    .card {
+        background-color: white; 
+        opacity: 1; 
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
+        border-radius: 5px; 
+    }
+</style>
+
+</head>
+<body>
+    <div class="container text-center">
+        <h1 class="mt-4" style=" color: white">sDrive</h1>
+    </div>
+
+    <div class="container mt-4">
+        <div class="row justify-content-center">
+            <!-- Sekcja lewa: Opis projektu -->
+            <div class="col-lg-5 d-flex align-items-stretch">
+                <div class="card w-100 bg-white" >
+                    <div class="card-body">
+                        <div class="container text-center">
+                            <h1 class="mt-3">Opis projektu</h1>
+                        </div>
+                        <h9>Celem niniejszej pracy dyplomowej jest wdrożenie aplikacji internetowej umożliwiającej 
+                            bezpieczne przechowywanie plików oraz zarządzanie dostępem do nich. W dobie intensywnej 
+                            digitalizacji danych rośnie potrzeba opracowania niezawodnych metod ochrony informacji 
+                            przechowywanych online.
+                        </h9>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sekcja prawa: Logowanie -->
+            <div class="col-lg-5 d-flex align-items-stretch">
+                <div class="card w-100 bg-white">
+                    <div class="card-body">
+                        <div class="container text-center">
+                            <h1 class="mt-3">Logowanie</h1>
+                        </div>
+
+                        <form id="loginForm" action="/api/login" method="POST" class="mt-3">
+                            <div class="mb-2">
+                                <input type="email" class="form-control" id="email" name="email" placeholder="Email" required>
+                            </div>
+                            <div class="mb-2">
+                                <input type="password" class="form-control" id="password" name="password" placeholder="Hasło" required>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <button type="submit" class="btn btn-primary w-50 me-1">Zaloguj się</button>
+                                <a href="/register" class="btn btn-secondary w-50 ms-1">Rejestracja</a>
+                            </div>
+                        </form>
+
+                        <div id="error" class="text-danger mt-3" style="display: none;"></div>
+                        <div id="success" class="text-success mt-3" style="display: none;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS and Popper.js -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/login.js"></script>
+    
+</body>
+</html>
+}
+
+	register.ejs
+{<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Style for background image -->
+    <style>
+    body {
+                background-image: url('/images/xFc.png');
+                background-size: cover;
+                background-position: center;
+                background-repeat: no-repeat;
+                background-attachment: fixed;
+            }
+
+        .card {
+            background-color: white; 
+            opacity: 1; 
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
+            border-radius: 5px; 
+        }
+    </style>
+</head>
+<body>
+    <div class="container text-center">
+        <h1 class="mt-4" style=" color: white">Rejestracja w systemie sDrive</h1>
+    </div>
+
+    <div class="container mt-4 d-flex justify-content-center">
+        <div class="card w-50 bg-white">
+            <div class="card-body">
+                <form id="registerForm" action="/api/register" method="POST" class="mt-3">
+                    <div class="mb-4">
+                        <input type="email" class="form-control" id="email" name="email" placeholder="Email" required>
+                    </div>
+                    <div class="mb-4">
+                        <input type="password" class="form-control" id="password" name="password" placeholder="Hasło" required>
+                    </div>
+                    <div class="mb-4">
+                        <input type="text" class="form-control" id="firstName" name="firstName" placeholder="Imię" required>
+                    </div>
+                    <div class="mb-4">
+                        <input type="text" class="form-control" id="lastName" name="lastName" placeholder="Nazwisko" required>
+                    </div>
+                    <div class="mb-4">
+                        <input type="date" class="form-control" id="birthDate" name="birthDate" placeholder="Data urodzenia" required>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <button type="submit" class="btn btn-primary w-50 me-2">Zarejestruj się</button>
+                        <a href="/" class="btn btn-secondary w-50">Anuluj rejestrację</a>
+                    </div>
+                </form>
+                <div id="error" class="text-danger mt-3" style="display: none;"></div>
+                <div id="success" class="text-success mt-3" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS and Popper.js -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/register.js"></script>
+
+</body>
+</html>
+}
+
+	welcome.ejs
+{<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The end...</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container text-center">
+        <h1 class="mt-4">Witaj na krańcu świata</h1>
+    </div>
+
+    <!-- Bootstrap JS and Popper.js -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+}

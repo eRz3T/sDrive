@@ -38,15 +38,20 @@ const markNotificationAsRead = (req, res) => {
 const getReadNotifications = (req, res) => {
     const safeId = req.user.safeid_users;
 
-    dbLogins.query('SELECT id_notifications, head_notifications, date_notifications FROM notifications WHERE user_notifications = ? AND status_notifications = "read"', [safeId], (err, results) => {
-        if (err) {
-            console.error("Błąd podczas pobierania przeczytanych powiadomień:", err);
-            return res.status(500).json({ status: "error", error: "Błąd podczas pobierania przeczytanych powiadomień" });
-        }
+    dbLogins.query(
+        'SELECT id_notifications, head_notifications, msg_notifications, date_notifications FROM notifications WHERE user_notifications = ? AND status_notifications = "read"', 
+        [safeId], 
+        (err, results) => {
+            if (err) {
+                console.error("Błąd podczas pobierania przeczytanych powiadomień:", err);
+                return res.status(500).json({ status: "error", error: "Błąd podczas pobierania przeczytanych powiadomień" });
+            }
 
-        res.json({ status: "success", notifications: results });
-    });
+            res.json({ status: "success", notifications: results });
+        }
+    );
 };
+
 
 
 

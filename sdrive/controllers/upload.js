@@ -1,38 +1,36 @@
 const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
-const crypto = require('crypto');  // Do generowania bezpiecznych nazw plików
+const crypto = require('crypto');  // Do generowania zaszyfrowanych nazw plików
 const { dbFiles } = require("../routes/db-config");
 
-// Konfiguracja Multer do przechowywania plików w odpowiednich folderach
+// Konfiguracja Multer do przechowywania plików
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        const safeId = req.user.safeid_users; // Zalogowany użytkownik, teraz pobieramy safeid_users
+        const safeId = req.user.safeid_users;  // Pobieramy safeid użytkownika
         const userDir = path.join(__dirname, '..', 'data', 'users', safeId);
 
-        // Sprawdź, czy katalog użytkownika (safeid) istnieje, jeśli nie, to go utwórz
         if (!fs.existsSync(userDir)) {
             fs.mkdirSync(userDir, { recursive: true });
             console.log(`Utworzono katalog dla użytkownika z safeid: ${safeId}`);
         }
 
-        cb(null, userDir); // Zapisuj plik w folderze użytkownika na podstawie safeid_users
+        cb(null, userDir);
     },
     filename: (req, file, cb) => {
         const originalName = file.originalname;
-
-        // Generowanie bezpiecznej zaszyfrowanej nazwy pliku przy użyciu funkcji crypto
-        const cryptedName = crypto.randomBytes(16).toString('hex') + path.extname(originalName); // Bezpieczna nazwa z rozszerzeniem
+        const cryptedName = crypto.randomBytes(16).toString('hex') + path.extname(originalName);  // Generujemy zaszyfrowaną nazwę
         console.log(`Przesyłanie pliku: ${originalName} (zaszyfrowana nazwa: ${cryptedName})`);
         cb(null, cryptedName);
     }
 });
 
+// Inicjalizacja multer po skonfigurowaniu storage
 const upload = multer({ storage: storage }).single('file');
 
 // Funkcja obsługująca przesyłanie pliku i zapisywanie informacji do bazy
 const uploadFile = (req, res) => {
-    const safeId = req.user.safeid_users;  // Pobieramy safeid_users zamiast emaila
+    const safeId = req.user.safeid_users;
     console.log(`Rozpoczęto przesyłanie pliku przez użytkownika z safeid: ${safeId}`);
 
     upload(req, res, (err) => {
@@ -43,14 +41,13 @@ const uploadFile = (req, res) => {
 
         const originalName = req.file.originalname;
         const cryptedName = req.file.filename;
+        const fileType = path.extname(originalName).substring(1);  // Typ pliku
+        const uploadDate = new Date();  // Aktualny datetime
 
-        // Określenie typu pliku na podstawie rozszerzenia
-        const fileType = path.extname(originalName).substring(1); // np. 'txt', 'pdf', 'docx'
-
-        // Zapisz dane pliku do bazy danych sdrive_files, teraz z safeid_users w kolumnie cryptedowner_files
+        // Zapisz dane pliku do bazy danych
         dbFiles.query(
-            'INSERT INTO files (originalname_files, cryptedname_files, cryptedowner_files, filetype_files) VALUES (?, ?, ?, ?)',
-            [originalName, cryptedName, safeId, fileType],  // Zapisujemy safeId zamiast zaszyfrowanego emaila
+            'INSERT INTO files (originalname_files, cryptedname_files, cryptedowner_files, filetype_files, delete_files, dateofupload_files) VALUES (?, ?, ?, ?, ?, ?)',
+            [originalName, cryptedName, safeId, fileType, 0, uploadDate],  // Ustawia delete_files na 0 i wstawia datetime przesyłania
             (err, result) => {
                 if (err) {
                     console.error('Błąd zapisu informacji o pliku do bazy danych:', err);

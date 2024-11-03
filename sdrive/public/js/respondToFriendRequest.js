@@ -1,4 +1,6 @@
 function respondToFriendRequest(noteId, action) {
+    console.log(`Wysyłam odpowiedź: noteId=${noteId}, action=${action}`); // Debugowanie
+    
     fetch(`/api/respond-friend-request`, {
         method: 'POST',
         headers: {
@@ -9,10 +11,10 @@ function respondToFriendRequest(noteId, action) {
     .then(response => response.json())
     .then(data => {
         if (data.status === 'success') {
-            alert(data.success);
-            location.reload(); // Odśwież stronę po odpowiedzi
+            setTimeout(() => location.reload(), 100); 
         } else {
-            alert(data.error);
+            alert(data.error); // Wyświetl komunikat o błędzie
+            setTimeout(() => location.reload(), 500); 
         }
     })
     .catch(err => {

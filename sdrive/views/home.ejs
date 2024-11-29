@@ -107,73 +107,84 @@
                 </div>
             </div>
 
-            <!-- Sekcja z plikami -->
-            <div class="col-md-8">
-                <div class="row mt-3">
-                    <!-- Twoje pliki -->
-                    <div class="col-md-6">
-                        <div class="card h-100">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <h5>Twoje pliki</h5>
-                                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#allUserFilesModal">Pozostałe</button>
-                                </div>
-                                <ul class="list-group mt-2">
-                                    <% for (let i = 0; i < 3; i++) { %>
-                                        <% if (files[i]) { %>
-                                            <li class="list-group-item">
-                                                <div class="text-center"><strong><%= files[i].originalname_files %></strong></div>
-                                                <div class="d-flex justify-content-center mt-2 gap-1">
-                                                    <a href="/download/<%= files[i].cryptedname_files %>" class="btn btn-custom btn-sm">Pobierz</a>
-                                                    <button type="button" class="btn btn-custom btn-sm" onclick="showFileContent('<%= files[i].cryptedname_files %>')">Odczytaj</button>
-                                                    <button type="button" class="btn btn-custom btn-sm" onclick="deleteFile('<%= files[i].cryptedname_files %>')">Usuń</button>
-                                                    <button type="button" class="btn btn-custom btn-sm" onclick="openShareOwnFileModal('<%= files[i].cryptedname_files %>', '<%= files[i].originalname_files %>')">Wyślij</button>
-                                                </div>
-                                            </li>
-                                        <% } else { %>
-                                            <li class="list-group-item d-flex justify-content-center align-items-center">
-                                                <span class="text-muted">Brak pliku</span>
-                                            </li>
-                                        <% } %>
-                                    <% } %>
-                                </ul>
-                            </div>
-                        </div>
+<!-- Sekcja z plikami -->
+<div class="col-md-8">
+    <div class="row mt-3">
+        <!-- Twoje pliki -->
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5>Twoje pliki</h5>
+                        <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#allUserFilesModal">Pozostałe</button>
                     </div>
-
-                    <!-- Udostępnione Tobie pliki -->
-                    <div class="col-md-6">
-                        <div class="card h-100">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <h5>Udostępnione Tobie pliki</h5>
-                                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#allSharedFilesModal">Pozostałe</button>
-                                </div>
-                                <ul class="list-group mt-2">
-                                    <% for (let i = 0; i < 3; i++) { %>
-                                        <% if (sharedFiles[i]) { %>
-                                            <li class="list-group-item">
-                                                <div class="text-center"><strong><%= sharedFiles[i].truename_fshare %></strong></div>
-                                                <div class="d-flex justify-content-center mt-2 gap-1">
-                                                    <a href="/download/shared/<%= sharedFiles[i].file_fshare %>" class="btn btn-custom btn-sm">Pobierz</a>
-                                                    <button type="button" class="btn btn-custom btn-sm" onclick="showFileContent('<%= sharedFiles[i].file_fshare %>', true)">Odczytaj</button>
-                                                    <button type="button" class="btn btn-custom btn-sm" onclick="openSharedFileModal('<%= sharedFiles[i].file_fshare %>', '<%= sharedFiles[i].truename_fshare %>')">Wyślij</button>
-                                                    <button type="button" class="btn btn-custom btn-sm" onclick="deleteSharedFile('<%= sharedFiles[i].file_fshare %>')">Usuń</button>
-                                                </div>
-                                            </li>
-                                        <% } else { %>
-                                            <li class="list-group-item d-flex justify-content-center align-items-center">
-                                                <span class="text-muted">Brak pliku</span>
-                                            </li>
-                                        <% } %>
-                                    <% } %>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
+                    <ul class="list-group mt-2">
+                        <% for (let i = 0; i < 3; i++) { %>
+                            <% if (files[i]) { %>
+                                <li class="list-group-item d-flex flex-column align-items-center">
+                                    <div class="text-center"><strong><%= files[i].originalname_files %></strong></div>
+                                    <div class="dropdown mt-2 w-100">
+                                        <button class="btn btn-primary dropdown-toggle w-100" type="button" id="dropdownMenuButtonFile<%= i %>" data-bs-toggle="dropdown" aria-expanded="false">
+                                            Opcje
+                                        </button>
+                                        <ul class="dropdown-menu w-100" aria-labelledby="dropdownMenuButtonFile<%= i %>">
+                                            <li><a class="dropdown-item" href="/download/<%= files[i].cryptedname_files %>">Pobierz</a></li>
+                                            <li><a class="dropdown-item" href="#" onclick="editFile('<%= files[i].cryptedname_files %>')">Edytuj</a></li>
+                                            <li><a class="dropdown-item" href="#" onclick="showFileContent('<%= files[i].cryptedname_files %>')">Odczytaj</a></li>
+                                            <li><a class="dropdown-item" href="#" onclick="deleteFile('<%= files[i].cryptedname_files %>')">Usuń</a></li>
+                                            <li><a class="dropdown-item" href="#" onclick="openShareOwnFileModal('<%= files[i].cryptedname_files %>', '<%= files[i].originalname_files %>')">Wyślij</a></li>
+                                        </ul>
+                                    </div>
+                                </li>
+                            <% } else { %>
+                                <li class="list-group-item d-flex justify-content-center align-items-center">
+                                    <span class="text-muted">Brak pliku</span>
+                                </li>
+                            <% } %>
+                        <% } %>
+                    </ul>
                 </div>
-            
-        
+            </div>
+        </div>
+
+        <!-- Udostępnione Tobie pliki -->
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5>Udostępnione Tobie pliki</h5>
+                        <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#allSharedFilesModal">Pozostałe</button>
+                    </div>
+                    <ul class="list-group mt-2">
+                        <% for (let i = 0; i < 3; i++) { %>
+                            <% if (sharedFiles[i]) { %>
+                                <li class="list-group-item d-flex flex-column align-items-center">
+                                    <div class="text-center"><strong><%= sharedFiles[i].truename_fshare %></strong></div>
+                                    <div class="dropdown mt-2 w-100">
+                                        <button class="btn btn-primary dropdown-toggle w-100" type="button" id="dropdownMenuButtonSharedFile<%= i %>" data-bs-toggle="dropdown" aria-expanded="false">
+                                            Opcje
+                                        </button>
+                                        <ul class="dropdown-menu w-100" aria-labelledby="dropdownMenuButtonSharedFile<%= i %>">
+                                            <li><a class="dropdown-item" href="/download/shared/<%= sharedFiles[i].file_fshare %>">Pobierz</a></li>
+                                            <li><a class="dropdown-item" href="#" onclick="showFileContent('<%= sharedFiles[i].file_fshare %>', true)">Odczytaj</a></li>
+                                            <li><a class="dropdown-item" href="#" onclick="openShareOwnFileModal('<%= sharedFiles[i].file_fshare %>', '<%= sharedFiles[i].truename_fshare %>', true)">Wyślij</a></li>
+                                            <li><a class="dropdown-item" href="#" onclick="deleteSharedFile('<%= sharedFiles[i].file_fshare %>')">Usuń</a></li>
+                                        </ul>
+                                    </div>
+                                </li>
+                            <% } else { %>
+                                <li class="list-group-item d-flex justify-content-center align-items-center">
+                                    <span class="text-muted">Brak pliku</span>
+                                </li>
+                            <% } %>
+                        <% } %>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
     
 
                 <!-- Sekcja dodawania plików -->
@@ -278,31 +289,42 @@
             </div>
             <div class="modal-body">
                 <ul class="list-group">
-                    <% allUserFiles.forEach(function(file) { %>
-                        <li class="list-group-item d-flex align-items-center">
-                            <!-- Nazwa pliku i data przesłania -->
-                            <div class="me-auto">
-                                <div><strong><%= file.originalname_files %></strong></div>
-                                <small class="text-muted">Data przesłania: <%= new Date(file.dateofupload_files).toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit', year: 'numeric' }) %></small>
-                            </div>
-                            <!-- Przyciski akcji -->
-                            <div class="d-flex flex-column gap-1">
-                                <div class="d-flex gap-1">
-                                    <a href="/download/<%= file.cryptedname_files %>" class="btn btn-custom btn-sm">Pobierz</a>
-                                    <button type="button" class="btn btn-custom btn-sm" onclick="showFileContent('<%= file.cryptedname_files %>')">Odczytaj</button>
+                    <% if (allUserFiles.length > 0) { %>
+                        <% allUserFiles.forEach(function(file, index) { %>
+                            <li class="list-group-item d-flex justify-content-between align-items-start">
+                                <!-- Lewa strona: nazwa pliku i data -->
+                                <div>
+                                    <div><strong><%= file.originalname_files %></strong></div>
+                                    <small class="text-muted">Data: <%= new Date(file.dateofupload_files).toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit', year: 'numeric' }) %></small>
                                 </div>
-                                <div class="d-flex gap-1 mt-1">
-                                    <button type="button" class="btn btn-custom btn-sm" onclick="deleteFile('<%= file.cryptedname_files %>')">Usuń</button>
-                                    <button type="button" class="btn btn-custom btn-sm" onclick="openShareModal('<%= file.cryptedname_files %>', '<%= file.originalname_files %>')">Wyślij</button>
+                                <!-- Prawa strona: przycisk Opcje -->
+                                <div>
+                                    <div class="dropdown">
+                                        <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButtonUser<%= index %>" data-bs-toggle="dropdown" aria-expanded="false">
+                                            Opcje
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButtonUser<%= index %>">
+                                            <li><a class="dropdown-item" href="/download/<%= file.cryptedname_files %>">Pobierz</a></li>
+                                            <li><a class="dropdown-item" href="#" onclick="editFile('<%= file.cryptedname_files %>')">Edytuj</a></li>
+                                            <li><a class="dropdown-item" href="#" onclick="showFileContent('<%= file.cryptedname_files %>')">Odczytaj</a></li>
+                                            <li><a class="dropdown-item" href="#" onclick="deleteFile('<%= file.cryptedname_files %>')">Usuń</a></li>
+                                            <li><a class="dropdown-item" href="#" onclick="openShareOwnFileModal('<%= file.cryptedname_files %>', '<%= file.originalname_files %>')">Wyślij</a></li>
+                                        </ul>
+                                    </div>
                                 </div>
-                            </div>
-                        </li>
-                    <% }); %>
+                            </li>
+                        <% }); %>
+                    <% } else { %>
+                        <li class="list-group-item text-center">Brak plików do wyświetlenia</li>
+                    <% } %>
                 </ul>
             </div>
         </div>
     </div>
 </div>
+
+
+
 
 <!-- Modal do wyświetlania wszystkich udostępnionych Tobie plików -->
 <div class="modal fade" id="allSharedFilesModal" tabindex="-1" aria-labelledby="allSharedFilesModalLabel" aria-hidden="true">
@@ -314,29 +336,40 @@
             </div>
             <div class="modal-body">
                 <ul class="list-group">
-                    <% allSharedFiles.forEach(function(sharedFile) { %>
-                        <li class="list-group-item d-flex align-items-center">
-                            <div class="me-auto">
-                                <div><strong><%= sharedFile.truename_fshare %></strong></div>
-                                <small class="text-muted">Data udostępnienia: <%= new Date(sharedFile.date_fshare).toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit', year: 'numeric' }) %></small>
-                            </div>
-                            <div class="d-flex flex-column gap-1">
-                                <div class="d-flex gap-1">
-                                    <a href="/download/shared/<%= sharedFile.file_fshare %>" class="btn btn-custom btn-sm w-100">Pobierz</a>
-                                    <button type="button" class="btn btn-custom btn-sm w-100" onclick="showFileContent('<%= sharedFile.file_fshare %>', true)">Odczytaj</button>
+                    <% if (allSharedFiles.length > 0) { %>
+                        <% allSharedFiles.forEach(function(sharedFile, index) { %>
+                            <li class="list-group-item d-flex justify-content-between align-items-start">
+                                <!-- Lewa strona: nazwa pliku i data -->
+                                <div>
+                                    <div><strong><%= sharedFile.truename_fshare %></strong></div>
+                                    <small class="text-muted">Data: <%= new Date(sharedFile.date_fshare).toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit', year: 'numeric' }) %></small>
                                 </div>
-                                <div class="d-flex gap-1 mt-1">
-                                    <button type="button" class="btn btn-custom btn-sm" onclick="openShareModal('<%= sharedFile.file_fshare %>', '<%= sharedFile.truename_fshare %>', true)">Wyślij</button>
-                                    <button type="button" class="btn btn-custom btn-sm" onclick="deleteSharedFile('<%= sharedFile.file_fshare %>')">Usuń</button>
+                                <!-- Prawa strona: przycisk Opcje -->
+                                <div>
+                                    <div class="dropdown">
+                                        <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButtonShared<%= index %>" data-bs-toggle="dropdown" aria-expanded="false">
+                                            Opcje
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButtonShared<%= index %>">
+                                            <li><a class="dropdown-item" href="/download/shared/<%= sharedFile.file_fshare %>">Pobierz</a></li>
+                                            <li><a class="dropdown-item" href="#" onclick="showFileContent('<%= sharedFile.file_fshare %>', true)">Odczytaj</a></li>
+                                            <li><a class="dropdown-item" href="#" onclick="openShareModal('<%= sharedFile.file_fshare %>', '<%= sharedFile.truename_fshare %>', true)">Wyślij</a></li>
+                                            <li><a class="dropdown-item" href="#" onclick="deleteSharedFile('<%= sharedFile.file_fshare %>')">Usuń</a></li>
+                                        </ul>
+                                    </div>
                                 </div>
-                            </div>
-                        </li>
-                    <% }); %>
+                            </li>
+                        <% }); %>
+                    <% } else { %>
+                        <li class="list-group-item text-center">Brak udostępnionych plików</li>
+                    <% } %>
                 </ul>
             </div>
         </div>
     </div>
 </div>
+
+
 
 
 
@@ -516,6 +549,7 @@
     <script src="/js/fshareFile.js"></script>
     <script src="/js/fshareShared.js"></script>
     <script src="/js/messages.js"></script>
+    <script src="/js/editFile.js"></script>
 
 </body>
 </html>

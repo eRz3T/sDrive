@@ -2,7 +2,7 @@ const express = require("express");
 const loggedIn = require("../controllers/loggedIn");
 const logout = require("../controllers/logout");
 const {deleteFile, deleteSharedFile} = require("../controllers/deleteFile");
-const { showUserFileContent, showSharedFileContent, removeHtmlFile } = require("../controllers/fileController");
+const { showUserFileContent, showSharedFileContent, removeHtmlFile, saveFileContent, getFileContent } = require("../controllers/fileController");
 const { getNotification, markNotificationAsRead, getReadNotifications } = require('../controllers/notifications');
 const { dbFiles } = require("../routes/db-config");
 const { dbLogins } = require("../routes/db-config");
@@ -15,6 +15,9 @@ const router = express.Router();
 // Użyj odpowiednich kontrolerów do wyświetlania plików użytkownika i udostępnionych plików
 router.get("/show/:filename", loggedIn, showUserFileContent);
 router.get("/show/shared/:filename", loggedIn, showSharedFileContent);
+
+router.post('/api/file/:filename/save', loggedIn, saveFileContent);
+router.get('/api/file/:filename/edit', loggedIn, getFileContent);
 
 router.post("/remove-html", removeHtmlFile);
 router.delete("/delete/:filename", loggedIn, deleteFile);
@@ -96,6 +99,34 @@ router.get('/home', loggedIn, (req, res) => {
         res.redirect('/login');
     }
 });
+
+
+router.get('/edit/:filename', loggedIn, (req, res) => {
+    const { filename } = req.params;
+
+    // Znajdź oryginalną nazwę pliku w bazie danych
+    dbFiles.query(
+        'SELECT originalname_files FROM files WHERE cryptedname_files = ?',
+        [filename],
+        (err, results) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).send('Błąd serwera');
+            }
+
+            if (results.length === 0) {
+                return res.status(404).send('Plik nie znaleziony');
+            }
+
+            const originalName = results[0].originalname_files;
+
+            // Renderuj widok editFile.ejs z nazwą pliku
+            res.render('editFile', { filename, originalName });
+        }
+    );
+});
+
+
 
 router.post('/api/share-file', loggedIn, (req, res) => {
     console.log('Rozpoczęto udostępnianie pliku:', req.body);

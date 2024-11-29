@@ -111,8 +111,76 @@ const removeHtmlFile = (req, res) => {
     }
 };
 
+
+const saveFileContent = (req, res) => {
+    const safeId = req.user.safeid_users; // ID użytkownika
+    const filename = req.params.filename; // Nazwa pliku z URL-a
+    const { content } = req.body; // Nowa zawartość pliku przesłana z frontend-u
+
+    const userDir = path.join(__dirname, '..', 'data', 'users', safeId);
+    const filePath = path.join(userDir, filename);
+
+    console.log(`Próbuję zapisać zawartość do pliku: ${filePath}`);
+
+    if (fs.existsSync(filePath)) {
+        fs.writeFile(filePath, content, 'utf8', (err) => {
+            if (err) {
+                console.error('Błąd zapisu pliku:', err);
+                return res.status(500).json({ status: 'error', error: 'Błąd zapisu pliku' });
+            }
+            console.log('Plik zapisany pomyślnie');
+            res.json({ status: 'success', success: 'Plik zapisany pomyślnie' });
+        });
+    } else {
+        console.error('Plik nie istnieje:', filePath);
+        res.status(404).json({ status: 'error', error: 'Plik nie istnieje' });
+    }
+};
+
+module.exports = { saveFileContent };
+
+
+const getFileContent = (req, res) => {
+    const safeId = req.user.safeid_users;
+    const filename = req.params.filename;
+
+    const userDir = path.join(__dirname, '..', 'data', 'users', safeId);
+    const filePath = path.join(userDir, filename);
+
+    console.log(`Próbuję pobrać zawartość pliku: ${filePath}`);
+
+    if (fs.existsSync(filePath)) {
+        const fileExtension = path.extname(filename).toLowerCase();
+
+        if (fileExtension === '.docx') {
+            const mammoth = require('mammoth');
+            mammoth.extractRawText({ path: filePath })
+                .then(result => {
+                    res.json({ status: 'success', content: result.value });
+                })
+                .catch(err => {
+                    console.error('Błąd podczas odczytu pliku .docx:', err);
+                    res.status(500).json({ status: 'error', error: 'Błąd odczytu pliku .docx' });
+                });
+        } else {
+            fs.readFile(filePath, 'utf8', (err, data) => {
+                if (err) {
+                    console.error('Błąd odczytu pliku:', err);
+                    return res.status(500).json({ status: 'error', error: 'Błąd odczytu pliku' });
+                }
+                res.json({ status: 'success', content: data });
+            });
+        }
+    } else {
+        console.error('Plik nie istnieje:', filePath);
+        res.status(404).json({ status: 'error', error: 'Plik nie istnieje' });
+    }
+};
+
 module.exports = {
     showUserFileContent,
     showSharedFileContent,
-    removeHtmlFile
+    removeHtmlFile,
+    saveFileContent,
+    getFileContent
 };

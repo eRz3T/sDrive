@@ -18,7 +18,7 @@ router.post('/search-friend', loggedIn, searchFriend);
 router.post('/invite-friend', loggedIn, inviteFriend);
 
 module.exports = router;
-}
+}sdada
 
 	deleteFile.js
 {const fs = require('fs');

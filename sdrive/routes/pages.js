@@ -2,23 +2,22 @@ const express = require("express");
 const loggedIn = require("../controllers/loggedIn");
 const logout = require("../controllers/logout");
 const {deleteFile, deleteSharedFile} = require("../controllers/deleteFile");
-const { showUserFileContent, showSharedFileContent, removeHtmlFile, saveFileContent, getFileContent } = require("../controllers/fileController");
+const { showUserFileContent, showSharedFileContent, removeHtmlFile, saveFileContent, getFileContent, renameFile } = require("../controllers/fileController");
 const { getNotification, markNotificationAsRead, getReadNotifications } = require('../controllers/notifications');
 const { dbFiles } = require("../routes/db-config");
 const { dbLogins } = require("../routes/db-config");
 const { startNewConversation, getConversations, getMessages, sendMessage } = require('../controllers/messages');
 const { respondToFriendRequest, getFriends, removeFriend } = require("../controllers/friends");
-const { downloadFile, downloadSharedFile } = require("../controllers/download");
+const { downloadFile, downloadSharedFile, downloadStorage } = require("../controllers/download");
 const { shareFile, shareSharedFile } = require('../controllers/shareFile');
+const { createStorage, getUserStorages, getStorageDetails, getFileFromStorage, saveFileStorageContent, addFilesToStorage, removeFileFromStorage, editFileName } = require('../controllers/storages');
+const { updateUser } = require('../controllers/userController');
 const router = express.Router();
 
-// Użyj odpowiednich kontrolerów do wyświetlania plików użytkownika i udostępnionych plików
 router.get("/show/:filename", loggedIn, showUserFileContent);
 router.get("/show/shared/:filename", loggedIn, showSharedFileContent);
-
 router.post('/api/file/:filename/save', loggedIn, saveFileContent);
 router.get('/api/file/:filename/edit', loggedIn, getFileContent);
-
 router.post("/remove-html", removeHtmlFile);
 router.delete("/delete/:filename", loggedIn, deleteFile);
 router.get("/download/:filename", loggedIn, downloadFile);
@@ -35,14 +34,82 @@ router.get('/api/read-notifications', loggedIn, getReadNotifications);
 router.post("/api/respond-friend-request", loggedIn, respondToFriendRequest);
 router.get('/api/get-friends', loggedIn, getFriends);
 router.post('/api/remove-friend', loggedIn, removeFriend);
+router.get('/api/get-user-storages', loggedIn, getUserStorages);
+router.get('/api/storage-file/:fileId/edit', loggedIn, getFileFromStorage);
+router.post('/api/storage-file/:fileId/save', loggedIn, saveFileStorageContent);
+router.post('/api/storage/:storageId/remove-file/:fileId', loggedIn, removeFileFromStorage);
+router.post("/api/storage/:storageId/edit-file-name/:fileId", loggedIn, editFileName);
+router.post('/api/file/rename/:fileId', loggedIn, renameFile);
+router.post('/api/user/update', loggedIn, updateUser);
+
+router.get("/storage/:id", loggedIn, (req, res) => {
+    const storageId = req.params.id;
+    const safeId = req.user.safeid_users;
+
+    // Pobierz nazwę magazynu
+    dbFiles.query(
+        'SELECT name_storages FROM storages WHERE id_storages = ? AND owner_storages = ? AND active_storages = 1',
+        [storageId, safeId],
+        (err, storageResults) => {
+            if (err) {
+                console.error("Błąd podczas pobierania szczegółów magazynu:", err);
+                return res.status(500).send("Błąd serwera");
+            }
+
+            if (storageResults.length === 0) {
+                return res.status(404).send("Magazyn nie istnieje lub brak uprawnień.");
+            }
+
+            const storageName = storageResults[0].name_storages;
+
+            // Pobierz pliki w magazynie (uwzględniając datę dodania)
+            dbFiles.query(
+                `SELECT f.originalname_files, f.cryptedname_files, sf.date_storages_file 
+                 FROM storages_files sf 
+                 JOIN files f ON sf.id_files = f.id_files 
+                 WHERE sf.id_storages = ? AND sf.active_storages_files = 1`,
+                [storageId],
+                (err, storageFiles) => {
+                    if (err) {
+                        console.error("Błąd podczas pobierania plików magazynu:", err);
+                        return res.status(500).send("Błąd serwera");
+                    }
+
+                    // Pobierz wszystkie pliki użytkownika (poza magazynem)
+                    dbFiles.query(
+                        'SELECT originalname_files, cryptedname_files FROM files WHERE cryptedowner_files = ? AND delete_files = 0 AND (origin_file IS NULL OR origin_file != "storage")',
+                        [safeId],
+                        (err, allUserFiles) => {
+                            if (err) {
+                                console.error("Błąd podczas pobierania plików użytkownika:", err);
+                                return res.status(500).send("Błąd serwera");
+                            }
+
+                            // Renderuj widok magazynu
+                            res.render("storage", {
+                                storageId,
+                                storageName,
+                                files: storageFiles,
+                                allUserFiles, // Przekazujemy wszystkie pliki użytkownika
+                            });
+                        }
+                    );
+                }
+            );
+        }
+    );
+});
+
+
+
 
 router.get('/home', loggedIn, (req, res) => {
     if (req.user) {
         const safeId = req.user.safeid_users;
 
-        // Pobierz pełną listę plików użytkownika
+        // Pobierz pełną listę plików użytkownika, które nie pochodzą z magazynu
         dbFiles.query(
-            'SELECT originalname_files, cryptedname_files, dateofupload_files FROM files WHERE cryptedowner_files = ? AND delete_files = 0 ORDER BY dateofupload_files DESC',
+            'SELECT originalname_files, cryptedname_files, dateofupload_files FROM files WHERE cryptedowner_files = ? AND delete_files = 0 AND (origin_file IS NULL OR origin_file != "storage") ORDER BY dateofupload_files DESC',
             [safeId],
             (err, allUserFiles) => {
                 if (err) throw err;
@@ -80,13 +147,14 @@ router.get('/home', loggedIn, (req, res) => {
                                         // Renderuj widok home z pełnymi i najnowszymi listami plików, znajomymi, powiadomieniami i udostępnionymi plikami
                                         res.render('home', {
                                             user: req.user,
-                                            files: latestUserFiles,
+                                            files: latestUserFiles, // Filtruje tylko pliki bez origin_file = "storage"
                                             allUserFiles: allUserFiles,
                                             friends: friends, // Przekazujemy znajomych
                                             notifications: notifications,
                                             sharedFiles: latestSharedFiles,
                                             allSharedFiles: allSharedFiles
                                         });
+                                        console.log('DEBUG: Przekazywane allUserFiles:', allUserFiles);
                                     }
                                 );
                             }
@@ -100,11 +168,18 @@ router.get('/home', loggedIn, (req, res) => {
     }
 });
 
+router.post('/api/storage/:storageId/add-files', loggedIn, addFilesToStorage);
+
 
 router.get('/edit/:filename', loggedIn, (req, res) => {
     const { filename } = req.params;
+    console.log('DEBUG: Pobieranie edycji pliku:', filename);
 
-    // Znajdź oryginalną nazwę pliku w bazie danych
+    if (!filename || filename.includes('/') || filename.includes('..')) {
+        console.error("Nieprawidłowa nazwa pliku:", filename);
+        return res.status(400).send("Nieprawidłowa nazwa pliku");
+    }
+
     dbFiles.query(
         'SELECT originalname_files FROM files WHERE cryptedname_files = ?',
         [filename],
@@ -115,18 +190,25 @@ router.get('/edit/:filename', loggedIn, (req, res) => {
             }
 
             if (results.length === 0) {
+                console.error("Plik nie znaleziony:", filename);
                 return res.status(404).send('Plik nie znaleziony');
             }
 
             const originalName = results[0].originalname_files;
-
-            // Renderuj widok editFile.ejs z nazwą pliku
             res.render('editFile', { filename, originalName });
         }
     );
 });
 
 
+router.get('/download-storage/:storageId', loggedIn, downloadStorage);
+
+
+
+router.post('/create-storage', loggedIn, (req, res, next) => {
+    console.log('Żądanie POST /create-storage:', req.body);
+    next();
+}, createStorage);
 
 router.post('/api/share-file', loggedIn, (req, res) => {
     console.log('Rozpoczęto udostępnianie pliku:', req.body);

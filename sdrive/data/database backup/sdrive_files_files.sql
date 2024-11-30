@@ -2,7 +2,7 @@
 --
 -- Host: localhost    Database: sdrive_files
 -- ------------------------------------------------------
--- Server version	8.0.39-0ubuntu0.24.04.2
+-- Server version	8.0.40-0ubuntu0.24.04.1
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -31,8 +31,9 @@ CREATE TABLE `files` (
   `delete_files` int NOT NULL,
   `dateofdelete_files` datetime DEFAULT NULL,
   `dateofupload_files` datetime NOT NULL,
+  `origin_file` varchar(45) DEFAULT NULL,
   PRIMARY KEY (`id_files`)
-) ENGINE=InnoDB AUTO_INCREMENT=32 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=93 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -41,7 +42,7 @@ CREATE TABLE `files` (
 
 LOCK TABLES `files` WRITE;
 /*!40000 ALTER TABLE `files` DISABLE KEYS */;
-INSERT INTO `files` VALUES (22,'Struktura projektu sdrive.txt','0549c6a3995c3a76cd2685d27a44a29d.txt','7pGVI2sUuJvXPW9d','txt',1,'2024-11-02 13:30:03','2024-11-02 13:29:37'),(23,'Struktura projektu sdrive.txt','f058ccd2c71a3507abd0caef69e156b1.txt','7pGVI2sUuJvXPW9d','txt',0,NULL,'2024-11-02 13:31:43'),(24,'Struktura projektu sdrive.txt','4466199a4fdd8253819b43c6c6b32d50.txt','BV@URNRYAR@Gp@zr','txt',0,NULL,'2024-11-02 14:08:16'),(25,'views home ejs DOCTYPE.txt','d943abb7e89db2fa6657e25f2f501770.txt','BV@URNRYAR@Gp@zr','txt',0,NULL,'2024-11-02 14:08:21'),(26,'polecenia.txt','fcdf77dc415d01f3d5883e319bc05aa8.txt','BV@URNRYAR@Gp@zr','txt',0,NULL,'2024-11-02 14:08:30'),(27,'readme.md','aa1e5e198d790c565c149589a383ec2e.md','7pGVI2sUuJvXPW9d','md',0,NULL,'2024-11-02 15:15:41'),(28,'polecenia.txt','5e0d8c9c97bfa6f62aa1a408e16b5cd9.txt','7pGVI2sUuJvXPW9d','txt',0,NULL,'2024-11-02 15:15:55'),(29,'auth.js','99cccdf3c65c2e19b36d9650405f96da.js','7pGVI2sUuJvXPW9d','js',0,NULL,'2024-11-02 15:16:03'),(30,'Struktura projektu sdrive.txt','3250d7e9ce989af2bd3db566335fb6a8.txt','7pGVI2sUuJvXPW9d','txt',0,NULL,'2024-11-02 15:18:08'),(31,'Projekt sici lokalnych.docx','1ed361167cc32324b664fb51766f422c.docx','7pGVI2sUuJvXPW9d','docx',0,NULL,'2024-11-02 16:06:29');
+INSERT INTO `files` VALUES (48,'polecenia.txt','179659226048f69ddf3c8c93da5f1fb7.txt','7pGVI2sUuJvXPW9d','txt',0,NULL,'2024-11-30 19:26:50',NULL),(49,'magazyny.txt','8a029fe86f82cb86965a8c1b7e7f12d1.txt','7pGVI2sUuJvXPW9d','txt',0,NULL,'2024-11-30 19:26:56',NULL),(74,'polecenia.txt','1211cb9b0767e9b42998821398796f02.txt','7pGVI2sUuJvXPW9d','txt',0,NULL,'2024-11-30 20:23:52','storage'),(75,'magazyny.txt','4b83b3c9d946fe22b3f3b182653a96df.txt','7pGVI2sUuJvXPW9d','txt',0,NULL,'2024-11-30 20:23:52','storage'),(76,'polecenia(1).txt','504d48c1f1f90c945907860ae815ff1d.txt','7pGVI2sUuJvXPW9d','txt',0,NULL,'2024-11-30 20:23:56','storage'),(77,'magazyny(1).txt','afdbee2283479c10ba202f7611c49b8f.txt','7pGVI2sUuJvXPW9d','txt',0,NULL,'2024-11-30 20:23:56','storage'),(78,'polecenia(2).txt','509cbd15f6236229d29b42d3a2c57a35.txt','7pGVI2sUuJvXPW9d','txt',0,NULL,'2024-11-30 20:24:00','storage'),(79,'magazyny(2).txt','30b223d0e27c74d100004d4d15f57c69.txt','7pGVI2sUuJvXPW9d','txt',0,NULL,'2024-11-30 20:24:00','storage'),(80,'poleceni2424324.txt','f34c3b7798928a77712471ec9a19e48f.txt','7pGVI2sUuJvXPW9d','txt',0,NULL,'2024-11-30 20:24:04','storage'),(81,'magazyny3423423423.txt','c02bca9a66d2d4bae874f7992e51e27d.txt','7pGVI2sUuJvXPW9d','txt',0,NULL,'2024-11-30 20:24:04','storage'),(82,'polecenia(3).txt','be50aeffca2bc2bbea5d0c552c4bf348.txt','7pGVI2sUuJvXPW9d','txt',0,NULL,'2024-11-30 20:24:37','storage'),(83,'magazyny(3).txt','8a580f08adf64a3d14e847cff64a74d5.txt','7pGVI2sUuJvXPW9d','txt',0,NULL,'2024-11-30 20:24:37','storage'),(84,'polecenia(4).txt','2d8bb2ca55486385b6f6aefc9bfaa33f.txt','7pGVI2sUuJvXPW9d','txt',0,NULL,'2024-11-30 20:24:41','storage'),(85,'magazyny(4).txt','96fe0c761df0ba48e724deeabed50cc9.txt','7pGVI2sUuJvXPW9d','txt',0,NULL,'2024-11-30 20:24:41','storage'),(86,'polecenia(4).txt','6465951ae622de91e182748b6eb1b39d.txt','7pGVI2sUuJvXPW9d','txt',0,NULL,'2024-11-30 20:25:23','storage'),(87,'magazyny(4).txt','fde3a75f7d02e7e11042c1bad4e33e17.txt','7pGVI2sUuJvXPW9d','txt',0,NULL,'2024-11-30 20:25:23','storage'),(88,'polecenia(5).txt(deleted)0795','5f8710b7b3329bb8f7e0d33fc444bd68.txt','7pGVI2sUuJvXPW9d','txt',0,NULL,'2024-11-30 20:25:28','storage'),(89,'magazyny(5).txt(deleted)0365','00bbe0cf310c0d39a123ed56097a6ed2.txt','7pGVI2sUuJvXPW9d','txt',0,NULL,'2024-11-30 20:25:28','storage'),(90,'magazynowiec.txt','6c40dff98bb9d71524c3642467f18d0f.txt','7pGVI2sUuJvXPW9d','txt',0,NULL,'2024-11-30 20:30:26',NULL),(91,'polecenia(5).txt','f1858efc13d86ed16f354c7756cacb3f.txt','7pGVI2sUuJvXPW9d','txt',0,NULL,'2024-11-30 21:04:01','storage'),(92,'magazyny(5).txt','c2cc915cba59bf869c1db7c3a542ae0d.txt','7pGVI2sUuJvXPW9d','txt',0,NULL,'2024-11-30 21:04:01','storage');
 /*!40000 ALTER TABLE `files` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -54,4 +55,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-11-03 18:42:01
+-- Dump completed on 2024-11-30 21:05:59

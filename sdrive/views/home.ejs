@@ -91,7 +91,8 @@
                             <li>Typ użytkownika: <%= user.type_users %></li>
                             <li>Data urodzenia: <%= new Date(user.dateofbirth_users).toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit', year: 'numeric' }) %></li>
                         </ul>
-                    </div>
+                        <button type="button" class="btn btn-primary w-100 mt-3" data-bs-toggle="modal" data-bs-target="#editUserModal">Edytuj dane</button>
+                    </div>                    
                 </div>
                 <div class="card">
                     <div class="card-body">
@@ -109,6 +110,19 @@
 
 <!-- Sekcja z plikami -->
 <div class="col-md-8">
+
+    <div class="card mt-3">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5>Magazyny</h5>
+                <div>
+                    <button class="btn btn-primary btn-sm me-2" data-bs-toggle="modal" data-bs-target="#addStorageModal">Utwórz</button>
+                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#allStoragesModal">Twoje magazyny</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="row mt-3">
         <!-- Twoje pliki -->
         <div class="col-md-6">
@@ -133,6 +147,8 @@
                                             <li><a class="dropdown-item" href="#" onclick="showFileContent('<%= files[i].cryptedname_files %>')">Odczytaj</a></li>
                                             <li><a class="dropdown-item" href="#" onclick="deleteFile('<%= files[i].cryptedname_files %>')">Usuń</a></li>
                                             <li><a class="dropdown-item" href="#" onclick="openShareOwnFileModal('<%= files[i].cryptedname_files %>', '<%= files[i].originalname_files %>')">Wyślij</a></li>
+                                            <li><a class="dropdown-item" href="#" onclick="openRenameFileModal('<%= files[i].cryptedname_files %>', '<%= files[i].originalname_files %>')">Zmień nazwę</a></li>
+
                                         </ul>
                                     </div>
                                 </li>
@@ -169,6 +185,8 @@
                                             <li><a class="dropdown-item" href="#" onclick="showFileContent('<%= sharedFiles[i].file_fshare %>', true)">Odczytaj</a></li>
                                             <li><a class="dropdown-item" href="#" onclick="openShareOwnFileModal('<%= sharedFiles[i].file_fshare %>', '<%= sharedFiles[i].truename_fshare %>', true)">Wyślij</a></li>
                                             <li><a class="dropdown-item" href="#" onclick="deleteSharedFile('<%= sharedFiles[i].file_fshare %>')">Usuń</a></li>
+                                            <li><a class="dropdown-item" href="#" onclick="openRenameFileModal('<%= files[i].cryptedname_files %>', '<%= files[i].originalname_files %>')">Zmień nazwę</a></li>
+
                                         </ul>
                                     </div>
                                 </li>
@@ -183,13 +201,13 @@
             </div>
         </div>
     </div>
-</div>
+
 
     
 
-                <!-- Sekcja dodawania plików -->
-                <div class="card mt-3">
-                    <div class="card-body">
+<!-- Sekcja dodawania plików -->
+        <div class="card mt-3">
+            <div class="card-body">
                         <div class="container text-center">
                             <h5>Dodawanie plików do konta</h5>
                         </div>
@@ -206,7 +224,10 @@
             </div>
         </div>
     </div>
-    
+</div> 
+
+
+
 
 <!-- OKNA MODALNE -->
 
@@ -279,6 +300,67 @@
 
 
 
+<!--Magazyny-->>
+<div class="modal fade" id="addStorageModal" tabindex="-1" aria-labelledby="addStorageModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addStorageModalLabel">Dodaj magazyn</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addStorageForm">
+                    <!-- Nazwa magazynu -->
+                    <div class="mb-3">
+                        <label for="storageName" class="form-label">Nazwa magazynu</label>
+                        <input type="text" class="form-control" id="storageName" name="storageName" required>
+                    </div>
+                    <!-- Lista checkboxów plików -->
+                    <div class="mb-3">
+                        <label class="form-label">Wybierz pliki</label>
+                        <div class="list-group" style="max-height: 300px; overflow-y: auto;">
+                            <% allUserFiles.forEach(function(file) { %>
+                                <div class="list-group-item">
+                                    <input 
+                                        type="checkbox" 
+                                        class="form-check-input me-2 file-checkbox" 
+                                        id="fileCheckbox<%= file.originalname_files %>" 
+                                        name="storageFiles" 
+                                        value="<%= file.originalname_files %>">
+                                    <label for="fileCheckbox<%= file.originalname_files %>" class="form-check-label">
+                                        <%= file.originalname_files %>
+                                    </label>
+                                </div>
+                            <% }); %>
+                        </div>
+                    </div>
+                    <!-- Przycisk utworzenia magazynu -->
+                    <button type="submit" class="btn btn-primary">Stwórz magazyn</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Modal Twoje magazyny -->
+<div class="modal fade" id="allStoragesModal" tabindex="-1" aria-labelledby="allStoragesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="allStoragesModalLabel">Twoje magazyny</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <ul class="list-group" id="storagesList">
+                    <!-- Lista magazynów zostanie wczytana dynamicznie -->
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Modal do wyświetlania wszystkich plików użytkownika -->
 <div class="modal fade" id="allUserFilesModal" tabindex="-1" aria-labelledby="allUserFilesModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
@@ -309,6 +391,8 @@
                                             <li><a class="dropdown-item" href="#" onclick="showFileContent('<%= file.cryptedname_files %>')">Odczytaj</a></li>
                                             <li><a class="dropdown-item" href="#" onclick="deleteFile('<%= file.cryptedname_files %>')">Usuń</a></li>
                                             <li><a class="dropdown-item" href="#" onclick="openShareOwnFileModal('<%= file.cryptedname_files %>', '<%= file.originalname_files %>')">Wyślij</a></li>
+                                            <li><a class="dropdown-item" href="#" onclick="openRenameFileModal('<%= file.cryptedname_files %>', '<%= file.originalname_files %>')">Zmień nazwę</a></li>
+
                                         </ul>
                                     </div>
                                 </div>
@@ -355,6 +439,8 @@
                                             <li><a class="dropdown-item" href="#" onclick="showFileContent('<%= sharedFile.file_fshare %>', true)">Odczytaj</a></li>
                                             <li><a class="dropdown-item" href="#" onclick="openShareModal('<%= sharedFile.file_fshare %>', '<%= sharedFile.truename_fshare %>', true)">Wyślij</a></li>
                                             <li><a class="dropdown-item" href="#" onclick="deleteSharedFile('<%= sharedFile.file_fshare %>')">Usuń</a></li>
+                                            <li><a class="dropdown-item" href="#" onclick="openRenameFileModal('<%= file.cryptedname_files %>', '<%= file.originalname_files %>')">Zmień nazwę</a></li>
+
                                         </ul>
                                     </div>
                                 </div>
@@ -369,9 +455,26 @@
     </div>
 </div>
 
-
-
-
+<div class="modal fade" id="renameFileModal" tabindex="-1" aria-labelledby="renameFileModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="renameFileModalLabel">Zmień nazwę pliku</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="renameFileForm">
+                    <div class="mb-3">
+                        <label for="newFileName" class="form-label">Nowa nazwa pliku</label>
+                        <input type="text" class="form-control" id="newFileName" required>
+                    </div>
+                    <input type="hidden" id="fileToRename">
+                    <button type="submit" class="btn btn-primary">Zmień nazwę</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
 
    <!-- Modal do wyświetlania powiadomienia -->
@@ -475,7 +578,6 @@
 
 
 
-<!-- Modale -->
 <div class="modal fade" id="shareFileModal" tabindex="-1" aria-labelledby="shareFileModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -536,6 +638,41 @@
     </div>
 </div>
 
+<div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editUserModalLabel">Edytuj dane użytkownika</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editUserForm">
+                    <div class="mb-3">
+                        <label for="editFirstName" class="form-label">Imię</label>
+                        <input type="text" class="form-control" id="editFirstName" value="<%= user.firstname_users %>" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editLastName" class="form-label">Nazwisko</label>
+                        <input type="text" class="form-control" id="editLastName" value="<%= user.lastname_users %>" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editEmail" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="editEmail" value="<%= user.email_users %>" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editPassword" class="form-label">Hasło</label>
+                        <input type="password" class="form-control" id="editPassword" placeholder="Podaj nowe hasło" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editDateOfBirth" class="form-label">Data urodzenia</label>
+                        <input type="date" class="form-control" id="editDateOfBirth" value="<%= user.dateofbirth_users.toISOString().slice(0, 10) %>" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Zapisz zmiany</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
 
     <!-- Bootstrap JS and Popper.js -->
@@ -550,6 +687,9 @@
     <script src="/js/fshareShared.js"></script>
     <script src="/js/messages.js"></script>
     <script src="/js/editFile.js"></script>
+    <script src="/js/storages.js"></script>
+    <script src="/js/rename.js"></script>
+    <script src="/js/edituser.js"></script>
 
 </body>
 </html>

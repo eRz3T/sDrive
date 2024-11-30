@@ -2,7 +2,7 @@
 --
 -- Host: localhost    Database: sdrive_logins
 -- ------------------------------------------------------
--- Server version	8.0.39-0ubuntu0.24.04.2
+-- Server version	8.0.40-0ubuntu0.24.04.1
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -41,7 +41,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (3,'tet@tet','$2a$08$auFK/b1M.zIxq0dYjsWDBOgRESfGYZxc1j/BsrZi0Z8pV28C9p0BC','tet','tet','1998-07-27','$2a$10$Itt9nmjTNY3qXsLbNkpFc.my5GAWBeWoGw.C5IRLCAJV2T.hqu.hm','Normal'),(5,'bartek.c12@gmail.com','$2a$08$T3yWQON6bWPvKcxPGoJlcekukThnYRmZKlm5Oi9/LB0eZgl0kwr5S','Bartek','Cetera','1998-07-27','7pGVI2sUuJvXPW9d','Normal'),(6,'cetera@op.pl','$2a$08$qzpqtcZMsm1y5BJlwWl.qO4h6SIwOtH60u2RelQtAQ1dsLCtyPe7.','Piotrek','Cetera','1988-07-27','BV@URNRYAR@Gp@zr','Normal');
+INSERT INTO `users` VALUES (3,'tet@tet','$2a$08$auFK/b1M.zIxq0dYjsWDBOgRESfGYZxc1j/BsrZi0Z8pV28C9p0BC','tet','tet','1998-07-27','$2a$10$Itt9nmjTNY3qXsLbNkpFc.my5GAWBeWoGw.C5IRLCAJV2T.hqu.hm','Normal'),(5,'bartek.c12@gmail.com','$2a$10$5LZVUl7rHfcnKkYN9NpgvueIUoGhgYpzMzVWOv77bezyDRI4QVumO','Bartłomiej','Cetera','1998-07-26','7pGVI2sUuJvXPW9d','Normal'),(6,'cetera@op.pl','$2a$08$qzpqtcZMsm1y5BJlwWl.qO4h6SIwOtH60u2RelQtAQ1dsLCtyPe7.','Piotrek','Cetera','1988-07-27','BV@URNRYAR@Gp@zr','Normal');
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -54,4 +54,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-11-03 18:42:01
+-- Dump completed on 2024-11-30 21:05:59

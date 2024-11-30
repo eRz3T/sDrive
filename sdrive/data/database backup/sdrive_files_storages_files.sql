@@ -1,0 +1,55 @@
+-- MySQL dump 10.13  Distrib 8.0.36, for Linux (x86_64)
+--
+-- Host: localhost    Database: sdrive_files
+-- ------------------------------------------------------
+-- Server version	8.0.40-0ubuntu0.24.04.1
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!50503 SET NAMES utf8 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Table structure for table `storages_files`
+--
+
+DROP TABLE IF EXISTS `storages_files`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `storages_files` (
+  `id_storages_files` int NOT NULL AUTO_INCREMENT,
+  `id_storages` int NOT NULL,
+  `id_files` int NOT NULL,
+  `date_storages_file` datetime NOT NULL,
+  `active_storages_files` int NOT NULL,
+  `modificator_storages_files` varchar(100) NOT NULL,
+  PRIMARY KEY (`id_storages_files`)
+) ENGINE=InnoDB AUTO_INCREMENT=67 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `storages_files`
+--
+
+LOCK TABLES `storages_files` WRITE;
+/*!40000 ALTER TABLE `storages_files` DISABLE KEYS */;
+INSERT INTO `storages_files` VALUES (49,24,74,'2024-11-30 20:23:52',1,'7pGVI2sUuJvXPW9d'),(50,24,75,'2024-11-30 20:23:52',1,'7pGVI2sUuJvXPW9d'),(51,24,76,'2024-11-30 20:23:56',1,'7pGVI2sUuJvXPW9d'),(52,24,77,'2024-11-30 20:23:56',1,'7pGVI2sUuJvXPW9d'),(53,24,78,'2024-11-30 20:24:00',1,'7pGVI2sUuJvXPW9d'),(54,24,79,'2024-11-30 20:24:00',1,'7pGVI2sUuJvXPW9d'),(55,24,80,'2024-11-30 20:24:04',1,'7pGVI2sUuJvXPW9d'),(56,24,81,'2024-11-30 20:24:04',1,'7pGVI2sUuJvXPW9d'),(57,24,82,'2024-11-30 20:24:37',1,'7pGVI2sUuJvXPW9d'),(58,24,83,'2024-11-30 20:24:37',1,'7pGVI2sUuJvXPW9d'),(59,24,84,'2024-11-30 20:24:41',0,'7pGVI2sUuJvXPW9d'),(60,24,85,'2024-11-30 20:24:41',0,'7pGVI2sUuJvXPW9d'),(61,24,86,'2024-11-30 20:25:23',1,'7pGVI2sUuJvXPW9d'),(62,24,87,'2024-11-30 20:25:23',1,'7pGVI2sUuJvXPW9d'),(63,24,88,'2024-11-30 20:25:28',0,'7pGVI2sUuJvXPW9d'),(64,24,89,'2024-11-30 20:25:28',0,'7pGVI2sUuJvXPW9d'),(65,24,91,'2024-11-30 21:04:01',1,'7pGVI2sUuJvXPW9d'),(66,24,92,'2024-11-30 21:04:01',1,'7pGVI2sUuJvXPW9d');
+/*!40000 ALTER TABLE `storages_files` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+-- Dump completed on 2024-11-30 21:05:59

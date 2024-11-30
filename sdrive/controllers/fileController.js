@@ -177,10 +177,59 @@ const getFileContent = (req, res) => {
     }
 };
 
+const renameFile = (req, res) => {
+    const safeId = req.user.safeid_users;
+    const { fileId } = req.params;
+    const { newFileName } = req.body;
+
+    if (!newFileName || typeof newFileName !== 'string' || !newFileName.trim()) {
+        return res.status(400).json({ status: 'error', error: 'Nazwa pliku nie może być pusta.' });
+    }
+
+    // Sprawdzanie, czy plik istnieje i należy do użytkownika
+    dbFiles.query(
+        'SELECT originalname_files, cryptedname_files FROM files WHERE cryptedname_files = ? AND cryptedowner_files = ?',
+        [fileId, safeId],
+        (err, results) => {
+            if (err) {
+                console.error('Błąd podczas wyszukiwania pliku:', err);
+                return res.status(500).json({ status: 'error', error: 'Błąd serwera.' });
+            }
+
+            if (results.length === 0) {
+                return res.status(404).json({ status: 'error', error: 'Plik nie istnieje lub brak dostępu.' });
+            }
+
+            const currentOriginalName = results[0].originalname_files;
+            const cryptedName = results[0].cryptedname_files;
+            const userDir = path.join(__dirname, '..', 'data', 'users', safeId);
+            const oldFilePath = path.join(userDir, cryptedName);
+            const newFilePath = path.join(userDir, cryptedName); // cryptedName pozostaje bez zmian
+
+            // Aktualizacja nazwy w bazie danych
+            dbFiles.query(
+                'UPDATE files SET originalname_files = ? WHERE cryptedname_files = ? AND cryptedowner_files = ?',
+                [newFileName, fileId, safeId],
+                (err) => {
+                    if (err) {
+                        console.error('Błąd podczas aktualizacji nazwy pliku:', err);
+                        return res.status(500).json({ status: 'error', error: 'Błąd serwera podczas zmiany nazwy pliku.' });
+                    }
+
+                    console.log(`Zmieniono nazwę pliku z "${currentOriginalName}" na "${newFileName}"`);
+                    res.json({ status: 'success', message: 'Nazwa pliku została pomyślnie zmieniona.' });
+                }
+            );
+        }
+    );
+};
+
+
 module.exports = {
     showUserFileContent,
     showSharedFileContent,
     removeHtmlFile,
     saveFileContent,
-    getFileContent
+    getFileContent,
+    renameFile
 };

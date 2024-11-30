@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zarządzanie Magazynem</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            background-image: url('/images/xFc.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            color: black;
+        }
+
+        .btn-primary {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .header {
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+            margin-bottom: 1rem;
+            border-radius: 10px;
+        }
+
+        .header h4 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+
+        .header .storage-name {
+            font-weight: bold;
+        }
+
+        .sidebar {
+            background-color: white;
+            color: black;
+            height: 100%;
+            overflow-y: auto;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-right: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .file-list-item {
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 5px;
+        }
+
+        .file-list-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .file-list-item.active {
+            background-color: #8ec6ff;
+            font-weight: bold;
+        }
+
+        .card {
+            background-color: white;
+            color: black;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .editor-area {
+            height: 70vh;
+            font-family: monospace;
+            resize: none;
+            border: none;
+        }
+
+        .file-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .file-actions button {
+            flex: 1;
+            margin: 0 0.5rem;
+        }
+
+        .file-actions button:first-child {
+            margin-left: 0;
+        }
+
+        .file-actions button:last-child {
+            margin-right: 0;
+        }
+
+        .sidebar .btn {
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-3">
+        <!-- Nagłówek -->
+        <div class="header">
+            <h4>Magazyn - <span class="storage-name"><%= storageName %></span></h4>
+            <div>
+                <button class="btn btn-primary" onclick="goBack()">Powrót</button>
+                <button class="btn btn-primary shadow" id="downloadButton" onclick="downloadStorage()">Pobierz magazyn</button>
+            </div>
+        </div>
+
+        <div class="d-flex">
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <h5 class="text-center mb-3">Pliki w magazynie</h5>
+                <ul id="fileList" class="list-unstyled">
+                    <% files.forEach(file => { %>
+                        <li class="file-list-item" 
+                            data-file-id="<%= file.cryptedname_files %>" 
+                            onclick="selectFile('<%= file.cryptedname_files %>', '<%= file.originalname_files %>')">
+                            <span><%= file.originalname_files %></span><br>
+                            <% if (file.date_storages_file) { %>
+                                <small class="text-muted">Dodano: <%= new Date(file.date_storages_file).toLocaleString('pl-PL') %></small>
+                            <% } else { %>
+                                <small class="text-muted">Data niedostępna</small>
+                            <% } %>
+                        </li>
+                    <% }) %>
+                </ul>                                
+                <button class="btn btn-primary shadow w-100 mt-3" data-bs-toggle="modal" data-bs-target="#addFilesModal">
+                    Dodaj pliki
+                </button>
+            </div>
+
+            <!-- Główna sekcja -->
+            <div class="flex-grow-1 d-flex flex-column">
+                <!-- Przyciski zarządzania plikami -->
+                <div class="file-actions">
+                    <button class="btn btn-primary" id="saveButton" onclick="saveFile()" disabled>Zapisz plik</button>
+                    <button class="btn btn-primary" id="deleteButton" onclick="deleteFile()" disabled>Usuń plik</button>
+                    <button class="btn btn-primary" id="editFileNameButton" onclick="openEditFileNameModal()" disabled>Edytuj nazwę</button>
+                </div>
+
+                <!-- Edytor -->
+                <div class="card flex-grow-1">
+                    <div class="card-body">
+                        <textarea id="editor" class="form-control editor-area" placeholder="Wybierz plik, aby go edytować" readonly></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Dodawania Plików -->
+    <div class="modal fade" id="addFilesModal" tabindex="-1" aria-labelledby="addFilesModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addFilesModalLabel">Dodaj pliki do magazynu</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addFilesForm">
+                        <!-- Lista checkboxów plików -->
+                        <div class="mb-3">
+                            <label class="form-label">Wybierz pliki</label>
+                            <div class="list-group" style="max-height: 300px; overflow-y: auto;">
+                                <% allUserFiles.forEach(function(file) { %>
+                                    <div class="list-group-item">
+                                        <input 
+                                            type="checkbox" 
+                                            class="form-check-input me-2 add-file-checkbox" 
+                                            id="addFileCheckbox<%= file.originalname_files %>" 
+                                            name="addStorageFiles" 
+                                            value="<%= file.originalname_files %>">
+                                        <label for="addFileCheckbox<%= file.originalname_files %>" class="form-check-label">
+                                            <%= file.originalname_files %>
+                                        </label>
+                                    </div>
+                                <% }); %>
+                            </div>
+                        </div>
+                        <!-- Przycisk dodania plików -->
+                        <button type="button" class="btn btn-primary" onclick="addFilesToStorage()">Dodaj pliki</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Edycji Nazwy Pliku -->
+<div class="modal fade" id="editFileNameModal" tabindex="-1" aria-labelledby="editFileNameModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editFileNameModalLabel">Edytuj nazwę pliku</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editFileNameForm">
+                    <div class="mb-3">
+                        <label for="newFileName" class="form-label">Nowa nazwa pliku</label>
+                        <input type="text" class="form-control" id="newFileName" placeholder="Wprowadź nową nazwę pliku" required>
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="submitFileNameEdit()">Zapisz zmiany</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+    <!-- Skrypty -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/storages.js"></script>
+</body>
+</html>

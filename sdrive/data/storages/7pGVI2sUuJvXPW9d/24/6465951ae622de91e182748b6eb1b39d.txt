@@ -1,4 +1,4 @@
-Środowisko
+Środowiskoddddd
 Ubuntu 24.04
 
 MySQL

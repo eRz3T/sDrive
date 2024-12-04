@@ -10,7 +10,7 @@ const { startNewConversation, getConversations, getMessages, sendMessage } = req
 const { respondToFriendRequest, getFriends, removeFriend } = require("../controllers/friends");
 const { downloadFile, downloadSharedFile, downloadStorage } = require("../controllers/download");
 const { shareFile, shareSharedFile } = require('../controllers/shareFile');
-const { createStorage, getUserStorages, getStorageDetails, getFileFromStorage, saveFileStorageContent, addFilesToStorage, removeFileFromStorage, editFileName } = require('../controllers/storages');
+const { createStorage, getUserStorages, getStorageDetails, getFileFromStorage, saveFileStorageContent, addFilesToStorage, removeFileFromStorage, editFileName, shareStorageWithMembers  } = require('../controllers/storages');
 const { updateUser } = require('../controllers/userController');
 const router = express.Router();
 
@@ -41,15 +41,44 @@ router.post('/api/storage/:storageId/remove-file/:fileId', loggedIn, removeFileF
 router.post("/api/storage/:storageId/edit-file-name/:fileId", loggedIn, editFileName);
 router.post('/api/file/rename/:fileId', loggedIn, renameFile);
 router.post('/api/user/update', loggedIn, updateUser);
+router.post('/api/storage/share', loggedIn, shareStorageWithMembers);
+
+router.get('/share-storage/:id', loggedIn, (req, res) => {
+    const storageId = req.params.id;
+    const userId = req.user.safeid_users;
+
+    dbFiles.query(
+        'SELECT * FROM storages WHERE id_storages = ? AND owner_storages = ? AND active_storages = 1',
+        [storageId, userId],
+        (err, results) => {
+            if (err) {
+                console.error("Błąd podczas weryfikacji właściciela magazynu:", err);
+                return res.status(500).send("Błąd serwera");
+            }
+
+            if (results.length === 0) {
+                return res.status(403).send("Nie masz uprawnień do udostępnienia tego magazynu.");
+            }
+
+            // Logika udostępniania magazynu
+            res.json({ status: "success", message: "Magazyn został udostępniony." });
+        }
+    );
+});
+
+
 
 router.get("/storage/:id", loggedIn, (req, res) => {
-    const storageId = req.params.id;
-    const safeId = req.user.safeid_users;
+    const storageId = req.params.id; // ID magazynu z URL-a
+    const safeId = req.user.safeid_users; // ID aktualnie zalogowanego użytkownika
 
-    // Pobierz nazwę magazynu
+    // Pobierz nazwę magazynu i właściciela
     dbFiles.query(
-        'SELECT name_storages FROM storages WHERE id_storages = ? AND owner_storages = ? AND active_storages = 1',
-        [storageId, safeId],
+        `SELECT storages.*, logins.firstname_users, logins.lastname_users
+         FROM storages
+         JOIN sdrive_logins.users AS logins ON storages.owner_storages = logins.safeid_users
+         WHERE storages.id_storages = ? AND storages.active_storages = 1`,
+        [storageId],
         (err, storageResults) => {
             if (err) {
                 console.error("Błąd podczas pobierania szczegółów magazynu:", err);
@@ -60,38 +89,61 @@ router.get("/storage/:id", loggedIn, (req, res) => {
                 return res.status(404).send("Magazyn nie istnieje lub brak uprawnień.");
             }
 
-            const storageName = storageResults[0].name_storages;
+            const storage = storageResults[0];
+            const isOwner = storage.owner_storages === safeId; // Sprawdzenie, czy użytkownik jest właścicielem
 
-            // Pobierz pliki w magazynie (uwzględniając datę dodania)
-            dbFiles.query(
-                `SELECT f.originalname_files, f.cryptedname_files, sf.date_storages_file 
-                 FROM storages_files sf 
-                 JOIN files f ON sf.id_files = f.id_files 
-                 WHERE sf.id_storages = ? AND sf.active_storages_files = 1`,
+            // Pobierz osoby, którym udostępniono magazyn
+            dbLogins.query(
+                `SELECT users.firstname_users, users.lastname_users
+                 FROM sdrive_logins.members_storages AS members
+                 JOIN sdrive_logins.users AS users ON members.id_user_members_storages = users.id_users
+                 WHERE members.id_storage_members_storages = ? AND members.active_members_storages = 1`,
                 [storageId],
-                (err, storageFiles) => {
+                (err, sharedWithResults) => {
                     if (err) {
-                        console.error("Błąd podczas pobierania plików magazynu:", err);
+                        console.error("Błąd podczas pobierania listy osób:", err);
                         return res.status(500).send("Błąd serwera");
                     }
 
-                    // Pobierz wszystkie pliki użytkownika (poza magazynem)
+                    // Pobierz pliki w magazynie
                     dbFiles.query(
-                        'SELECT originalname_files, cryptedname_files FROM files WHERE cryptedowner_files = ? AND delete_files = 0 AND (origin_file IS NULL OR origin_file != "storage")',
-                        [safeId],
-                        (err, allUserFiles) => {
+                        `SELECT f.originalname_files, f.cryptedname_files, sf.date_storages_file
+                         FROM storages_files sf
+                         JOIN files f ON sf.id_files = f.id_files
+                         WHERE sf.id_storages = ? AND sf.active_storages_files = 1`,
+                        [storageId],
+                        (err, storageFiles) => {
                             if (err) {
-                                console.error("Błąd podczas pobierania plików użytkownika:", err);
+                                console.error("Błąd podczas pobierania plików magazynu:", err);
                                 return res.status(500).send("Błąd serwera");
                             }
 
-                            // Renderuj widok magazynu
-                            res.render("storage", {
-                                storageId,
-                                storageName,
-                                files: storageFiles,
-                                allUserFiles, // Przekazujemy wszystkie pliki użytkownika
-                            });
+                            // Pobierz wszystkie pliki użytkownika (poza magazynem)
+                            dbFiles.query(
+                                `SELECT originalname_files, cryptedname_files
+                                 FROM files
+                                 WHERE cryptedowner_files = ?
+                                 AND delete_files = 0
+                                 AND (origin_file IS NULL OR origin_file != "storage")`,
+                                [safeId],
+                                (err, allUserFiles) => {
+                                    if (err) {
+                                        console.error("Błąd podczas pobierania plików użytkownika:", err);
+                                        return res.status(500).send("Błąd serwera");
+                                    }
+
+                                    // Renderuj widok magazynu
+                                    res.render("storage", {
+                                        storageId,
+                                        storageName: storage.name_storages,
+                                        ownerName: `${storage.firstname_users} ${storage.lastname_users}`,
+                                        sharedWith: sharedWithResults, // Lista osób, którym udostępniono magazyn
+                                        files: storageFiles, // Pliki w magazynie
+                                        allUserFiles, // Wszystkie pliki użytkownika
+                                        isOwner, // Czy użytkownik jest właścicielem
+                                    });
+                                }
+                            );
                         }
                     );
                 }
@@ -100,64 +152,108 @@ router.get("/storage/:id", loggedIn, (req, res) => {
     );
 });
 
-
-
-
 router.get('/home', loggedIn, (req, res) => {
     if (req.user) {
-        const safeId = req.user.safeid_users;
+        const safeId = req.user.safeid_users; // `safeid_users` z tabeli `users`
+        const userId = req.user.id_users; // `id_users` z tabeli `users`
 
         // Pobierz pełną listę plików użytkownika, które nie pochodzą z magazynu
         dbFiles.query(
-            'SELECT originalname_files, cryptedname_files, dateofupload_files FROM files WHERE cryptedowner_files = ? AND delete_files = 0 AND (origin_file IS NULL OR origin_file != "storage") ORDER BY dateofupload_files DESC',
+            `SELECT originalname_files, cryptedname_files, dateofupload_files 
+             FROM files 
+             WHERE cryptedowner_files = ? 
+             AND delete_files = 0 
+             AND (origin_file IS NULL OR origin_file != "storage") 
+             ORDER BY dateofupload_files DESC`,
             [safeId],
             (err, allUserFiles) => {
-                if (err) throw err;
+                if (err) {
+                    console.error("Błąd podczas pobierania plików użytkownika:", err);
+                    return res.status(500).send("Błąd serwera");
+                }
 
                 // Wybierz trzy najnowsze pliki użytkownika z pełnej listy
                 const latestUserFiles = allUserFiles.slice(0, 3);
 
                 // Pobierz pełną listę plików udostępnionych użytkownikowi
                 dbFiles.query(
-                    'SELECT truename_fshare, file_fshare, date_fshare FROM fshare WHERE sharedowner_fshare = ? AND deleted_fshare = 0 ORDER BY date_fshare DESC',
+                    `SELECT truename_fshare, file_fshare, date_fshare 
+                     FROM fshare 
+                     WHERE sharedowner_fshare = ? 
+                     AND deleted_fshare = 0 
+                     ORDER BY date_fshare DESC`,
                     [safeId],
                     (err, allSharedFiles) => {
-                        if (err) throw err;
+                        if (err) {
+                            console.error("Błąd podczas pobierania udostępnionych plików:", err);
+                            return res.status(500).send("Błąd serwera");
+                        }
 
                         // Wybierz trzy najnowsze pliki udostępnione użytkownikowi z pełnej listy
                         const latestSharedFiles = allSharedFiles.slice(0, 3);
 
-                        // Użyj funkcji getFriends do pobrania znajomych
-                        getFriends(req, {
-                            json: ({ status, friends }) => {
-                                if (status === 'error') {
-                                    console.error('Błąd podczas pobierania znajomych');
-                                    return res.status(500).send('Błąd serwera');
-                                }
-
-                                // Pobierz nieprzeczytane powiadomienia
-                                dbLogins.query(
-                                    'SELECT id_notifications, head_notifications, date_notifications FROM notifications WHERE user_notifications = ? AND status_notifications = "unread"',
-                                    [safeId],
-                                    (err, notifications) => {
-                                        if (err) throw err;
-
-                                        console.log('Pobrano powiadomienia:', notifications);
-
-                                        // Renderuj widok home z pełnymi i najnowszymi listami plików, znajomymi, powiadomieniami i udostępnionymi plikami
-                                        res.render('home', {
-                                            user: req.user,
-                                            files: latestUserFiles, // Filtruje tylko pliki bez origin_file = "storage"
-                                            allUserFiles: allUserFiles,
-                                            friends: friends, // Przekazujemy znajomych
-                                            notifications: notifications,
-                                            sharedFiles: latestSharedFiles,
-                                            allSharedFiles: allSharedFiles
-                                        });
-                                        console.log('DEBUG: Przekazywane allUserFiles:', allUserFiles);
-                                    }
-                                );
+                        // Pobierz magazyny udostępnione użytkownikowi
+                        const querySharedStorages = `
+                            SELECT 
+                                storages.id_storages, -- Dodajemy id_storages
+                                storages.name_storages,
+                                users.firstname_users,
+                                users.lastname_users
+                            FROM 
+                                sdrive_logins.members_storages AS members
+                            JOIN 
+                                sdrive_files.storages AS storages ON members.id_storage_members_storages = storages.id_storages
+                            JOIN 
+                                sdrive_logins.users AS users ON storages.owner_storages = users.safeid_users
+                            WHERE 
+                                members.id_user_members_storages = ?
+                                AND members.active_members_storages = 1 
+                                AND storages.active_storages = 1
+                        `;
+                        dbLogins.query(querySharedStorages, [userId], (err, sharedStorages) => {
+                            if (err) {
+                                console.error("Błąd podczas pobierania udostępnionych magazynów:", err);
+                                return res.status(500).send("Błąd serwera");
                             }
+
+                            // Pobierz listę znajomych
+                            getFriends(req, {
+                                json: ({ status, friends }) => {
+                                    if (status === 'error') {
+                                        console.error("Błąd podczas pobierania znajomych:", err);
+                                        return res.status(500).send("Błąd serwera");
+                                    }
+
+                                    // Pobierz nieprzeczytane powiadomienia
+                                    dbLogins.query(
+                                        `SELECT id_notifications, head_notifications, date_notifications 
+                                         FROM notifications 
+                                         WHERE user_notifications = ? 
+                                         AND status_notifications = "unread"`,
+                                        [safeId],
+                                        (err, notifications) => {
+                                            if (err) {
+                                                console.error("Błąd podczas pobierania powiadomień:", err);
+                                                return res.status(500).send("Błąd serwera");
+                                            }
+
+                                            console.log("Pobrano powiadomienia:", notifications);
+
+                                            // Renderuj widok home z pełnymi danymi
+                                            res.render('home', {
+                                                user: req.user,
+                                                files: latestUserFiles, // Najnowsze pliki użytkownika
+                                                allUserFiles: allUserFiles, // Wszystkie pliki użytkownika
+                                                sharedFiles: latestSharedFiles, // Najnowsze pliki udostępnione użytkownikowi
+                                                allSharedFiles: allSharedFiles, // Wszystkie udostępnione pliki
+                                                sharedStorages: sharedStorages, // Lista udostępnionych magazynów z id_storages
+                                                friends: friends, // Lista znajomych
+                                                notifications: notifications // Lista powiadomień
+                                            });
+                                        }
+                                    );
+                                }
+                            });
                         });
                     }
                 );
@@ -167,6 +263,7 @@ router.get('/home', loggedIn, (req, res) => {
         res.redirect('/login');
     }
 });
+
 
 router.post('/api/storage/:storageId/add-files', loggedIn, addFilesToStorage);
 

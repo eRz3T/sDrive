@@ -26,6 +26,7 @@ function selectFile(fileId, fileName) {
 }
 
 
+
 async function deleteFile() {
     if (!selectedFileId) {
         alert('Wybierz plik przed usunięciem.');
@@ -266,3 +267,98 @@ function manageStorage(storageId) {
 }
 
 document.getElementById('allStoragesModal').addEventListener('show.bs.modal', fetchUserStorages);
+
+
+function openShareModal() {
+    fetch('/api/get-friends')
+        .then(response => response.json())
+        .then(data => {
+            console.log('Dane znajomych:', data); // DEBUG
+            if (data.status === 'success') {
+                const friendsList = document.getElementById('friendsList');
+                friendsList.innerHTML = ''; // Wyczyść listę
+                data.friends.forEach(friend => {
+                    const listItem = `
+                        <div class="list-group-item">
+                            <input 
+                                type="checkbox" 
+                                class="form-check-input me-2" 
+                                id="friend${friend.id_users}" 
+                                value="${friend.id_users}">
+                            <label class="form-check-label" for="friend${friend.id_users}">
+                                ${friend.firstname_users} ${friend.lastname_users}
+                            </label>
+                        </div>
+                    `;
+                    friendsList.insertAdjacentHTML('beforeend', listItem);
+                });
+                // Pokaż modal
+                new bootstrap.Modal(document.getElementById('shareModal')).show();
+            } else {
+                console.error('Błąd pobierania znajomych:', data.error);
+            }
+        })
+        .catch(error => console.error('Błąd:', error));
+}
+
+function shareStorage() {
+    const storageId = window.location.pathname.split('/').pop();
+    const selectedFriends = Array.from(document.querySelectorAll('#friendsList input:checked'))
+        .map(input => input.value);
+
+    if (selectedFriends.length === 0) {
+        alert('Wybierz co najmniej jednego znajomego!');
+        return;
+    }
+
+    fetch('/api/storage/share', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            storageId: storageId,
+            friends: selectedFriends,
+        }),
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert('Magazyn został udostępniony!');
+                location.reload();
+            } else {
+                alert('Błąd: ' + data.error);
+            }
+        })
+        .catch(error => console.error('Błąd:', error));
+}
+
+function fetchSharedStorages() {
+    fetch("/api/shared-storages")
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === "success") {
+                const storagesList = document.getElementById("sharedStoragesList");
+                storagesList.innerHTML = ""; // Wyczyść poprzednią zawartość
+
+                if (data.storages.length === 0) {
+                    storagesList.innerHTML = '<li class="list-group-item">Brak udostępnionych magazynów.</li>';
+                } else {
+                    data.storages.forEach(storage => {
+                        const listItem = document.createElement("li");
+                        listItem.className = "list-group-item d-flex justify-content-between align-items-center";
+                        listItem.innerHTML = `
+                            <span>${storage.name_storages} <small>(Właściciel: ${storage.firstname_users} ${storage.lastname_users})</small></span>
+                            <button class="btn btn-primary btn-sm" onclick="openStorage(${storage.id_storages})">Otwórz</button>
+                        `;
+                        storagesList.appendChild(listItem);
+                    });
+                }
+            } else {
+                console.error("Błąd pobierania magazynów:", data.error);
+            }
+        })
+        .catch(err => console.error("Błąd podczas pobierania udostępnionych magazynów:", err));
+}
+
+function openStorage(storageId) {
+    window.location.href = `/storage/${storageId}`;
+}

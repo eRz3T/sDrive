@@ -1,4 +1,5 @@
 const { dbFiles } = require('../routes/db-config');
+const { dbLogins } = require('../routes/db-config');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
@@ -129,12 +130,13 @@ const getUserStorages = (req, res) => {
 };
 
 const getStorageDetails = (req, res) => {
-    const storageId = req.params.id;
-    const safeId = req.user.safeid_users;
+    const storageId = req.params.id; // ID magazynu z URL
+    const userId = req.user.safeid_users; // ID zalogowanego użytkownika
 
+    // Pobierz szczegóły magazynu z bazy danych
     dbFiles.query(
-        'SELECT name_storages FROM storages WHERE id_storages = ? AND owner_storages = ? AND active_storages = 1',
-        [storageId, safeId],
+        `SELECT * FROM storages WHERE id_storages = ? AND active_storages = 1`,
+        [storageId],
         (err, storageResults) => {
             if (err) {
                 console.error("Błąd podczas pobierania szczegółów magazynu:", err);
@@ -142,13 +144,17 @@ const getStorageDetails = (req, res) => {
             }
 
             if (storageResults.length === 0) {
-                return res.status(404).send("Magazyn nie istnieje lub brak uprawnień.");
+                return res.status(404).send("Magazyn nie istnieje lub został usunięty.");
             }
 
-            const storageName = storageResults[0].name_storages;
+            const storage = storageResults[0];
 
+            // Sprawdź, czy użytkownik jest właścicielem magazynu
+            const isOwner = storage.owner_storages === userId;
+
+            // Pobierz pliki w magazynie
             dbFiles.query(
-                `SELECT f.originalname_files, f.cryptedname_files, f.id_files, sf.date_storages_file 
+                `SELECT f.originalname_files, f.cryptedname_files, sf.date_storages_file 
                  FROM storages_files sf 
                  JOIN files f ON sf.id_files = f.id_files 
                  WHERE sf.id_storages = ? AND sf.active_storages_files = 1`,
@@ -158,11 +164,13 @@ const getStorageDetails = (req, res) => {
                         console.error("Błąd podczas pobierania plików magazynu:", err);
                         return res.status(500).send("Błąd serwera");
                     }
-            
+
+                    // Renderuj widok z magazynem
                     res.render("storage", {
-                        storageId,
-                        storageName,
-                        files: fileResults, // Przekazujemy daty dodania plików
+                        storageName: storage.name_storages,
+                        storageId: storage.id_storages,
+                        files: fileResults,
+                        isOwner: isOwner, // Przekazanie informacji, czy użytkownik jest właścicielem
                     });
                 }
             );
@@ -171,9 +179,9 @@ const getStorageDetails = (req, res) => {
 };
 
 
+
 const getFileFromStorage = (req, res) => {
     const fileId = req.params.fileId;
-    const safeId = req.user.safeid_users;
     const storageId = req.query.storageId;
 
     if (!storageId) {
@@ -181,39 +189,62 @@ const getFileFromStorage = (req, res) => {
         return res.status(400).json({ status: 'error', error: 'Brak ID magazynu.' });
     }
 
+    // Pobierz owner_storages na podstawie storageId
     dbFiles.query(
-        'SELECT cryptedname_files, originalname_files FROM files WHERE cryptedname_files = ? AND cryptedowner_files = ?',
-        [fileId, safeId],
-        (err, results) => {
+        'SELECT owner_storages FROM storages WHERE id_storages = ? AND active_storages = 1',
+        [storageId],
+        (err, storageResults) => {
             if (err) {
-                console.error('Błąd pobierania informacji o pliku:', err);
-                return res.status(500).json({ status: 'error', error: 'Błąd serwera podczas pobierania pliku.' });
+                console.error('Błąd pobierania informacji o magazynie:', err);
+                return res.status(500).json({ status: 'error', error: 'Błąd serwera podczas pobierania informacji o magazynie.' });
             }
 
-            if (results.length === 0) {
-                console.error('DEBUG: Plik nie istnieje lub brak dostępu.');
-                return res.status(404).json({ status: 'error', error: 'Plik nie istnieje lub brak dostępu.' });
+            if (storageResults.length === 0) {
+                console.error('DEBUG: Magazyn nie istnieje lub jest nieaktywny.');
+                return res.status(404).json({ status: 'error', error: 'Magazyn nie istnieje lub jest nieaktywny.' });
             }
 
-            const filePath = path.join(__dirname, '..', 'data', 'storages', safeId, storageId, fileId);
-            console.log('DEBUG: Ścieżka do pliku:', filePath);
+            const safeId = storageResults[0].owner_storages; // Użycie owner_storages jako safeId
+            console.log('DEBUG: safeId uzyskane z magazynu:', safeId);
 
-            if (!fs.existsSync(filePath)) {
-                console.error('DEBUG: Plik nie istnieje:', filePath);
-                return res.status(404).json({ status: 'error', error: 'Plik nie istnieje.' });
-            }
+            // Sprawdź, czy plik należy do użytkownika
+            dbFiles.query(
+                'SELECT cryptedname_files, originalname_files FROM files WHERE cryptedname_files = ?',
+                [fileId],
+                (err, fileResults) => {
+                    if (err) {
+                        console.error('Błąd pobierania informacji o pliku:', err);
+                        return res.status(500).json({ status: 'error', error: 'Błąd serwera podczas pobierania pliku.' });
+                    }
 
-            fs.readFile(filePath, 'utf8', (err, data) => {
-                if (err) {
-                    console.error('Błąd podczas czytania pliku:', err);
-                    return res.status(500).json({ status: 'error', error: 'Błąd podczas czytania pliku.' });
+                    if (fileResults.length === 0) {
+                        console.error('DEBUG: Plik nie istnieje lub brak dostępu.');
+                        return res.status(404).json({ status: 'error', error: 'Plik nie istnieje lub brak dostępu.' });
+                    }
+
+                    const filePath = path.join(__dirname, '..', 'data', 'storages', safeId, storageId, fileId);
+                    console.log('DEBUG: Ścieżka do pliku:', filePath);
+
+                    if (!fs.existsSync(filePath)) {
+                        console.error('DEBUG: Plik nie istnieje:', filePath);
+                        return res.status(404).json({ status: 'error', error: 'Plik nie istnieje.' });
+                    }
+
+                    // Odczytaj zawartość pliku
+                    fs.readFile(filePath, 'utf8', (err, data) => {
+                        if (err) {
+                            console.error('Błąd podczas czytania pliku:', err);
+                            return res.status(500).json({ status: 'error', error: 'Błąd podczas czytania pliku.' });
+                        }
+
+                        res.json({ status: 'success', content: data });
+                    });
                 }
-
-                res.json({ status: 'success', content: data });
-            });
+            );
         }
     );
 };
+
 
 const saveFileStorageContent = (req, res) => {
     const fileId = req.params.fileId;
@@ -525,6 +556,82 @@ const editFileName = (req, res) => {
     );
 };
 
+const shareStorage = (req, res) => {
+    const { storageId, friends } = req.body;
+    const ownerId = req.user.safeid_users;
+
+    // Weryfikacja, czy magazyn istnieje i należy do zalogowanego użytkownika
+    dbFiles.query(
+        'SELECT * FROM storages WHERE id_storages = ? AND owner_storages = ? AND active_storages = 1',
+        [storageId, ownerId],
+        (err, results) => {
+            if (err) {
+                console.error('Błąd podczas weryfikacji magazynu:', err);
+                return res.status(500).json({ status: 'error', error: 'Błąd serwera.' });
+            }
+
+            if (results.length === 0) {
+                return res.status(403).json({ status: 'error', error: 'Nie masz uprawnień do udostępnienia tego magazynu.' });
+            }
+
+            // Dodanie rekordów do tabeli udostępnień
+            const sharePromises = friends.map(friendId => {
+                return new Promise((resolve, reject) => {
+                    dbFiles.query(
+                        'INSERT INTO storages_shared (id_storages, id_user, shared_date) VALUES (?, ?, NOW())',
+                        [storageId, friendId],
+                        (err) => {
+                            if (err) reject(err);
+                            else resolve();
+                        }
+                    );
+                });
+            });
+
+            Promise.all(sharePromises)
+                .then(() => {
+                    res.json({ status: 'success', message: 'Magazyn został udostępniony.' });
+                })
+                .catch(err => {
+                    console.error('Błąd podczas udostępniania magazynu:', err);
+                    res.status(500).json({ status: 'error', error: 'Błąd podczas udostępniania magazynu.' });
+                });
+        }
+    );
+};
+
+const shareStorageWithMembers = (req, res) => {
+    const storageId = parseInt(req.body.storageId, 10); // Konwersja na liczbę
+    const friends = req.body.friends;
+    const modificatorId = req.user.safeid_users;
+    const currentDate = new Date();
+
+    if (!storageId || isNaN(storageId) || !friends || !Array.isArray(friends) || friends.length === 0) {
+        return res.status(400).json({ status: 'error', error: 'Nieprawidłowe dane wejściowe.' });
+    }
+
+    const values = friends.map(friendId => [
+        storageId,
+        friendId,
+        currentDate,
+        modificatorId,
+        1
+    ]);
+
+    dbLogins.query(
+        `INSERT INTO members_storages (id_storage_members_storages, id_user_members_storages, date_members_storages, modificator_members_storages, active_members_storages) 
+         VALUES ?`,
+        [values],
+        (err) => {
+            if (err) {
+                console.error('Błąd podczas zapisu do tabeli members_storages:', err);
+                return res.status(500).json({ status: 'error', error: 'Błąd serwera podczas udostępniania magazynu.' });
+            }
+
+            res.json({ status: 'success', message: 'Magazyn został udostępniony wybranym znajomym.' });
+        }
+    );
+};
 
 
 
@@ -536,6 +643,8 @@ module.exports = {
     saveFileStorageContent,
     addFilesToStorage,
     removeFileFromStorage,
-    editFileName
+    editFileName,
+    shareStorage,
+    shareStorageWithMembers
 };
 

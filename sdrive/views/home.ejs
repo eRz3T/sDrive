@@ -118,6 +118,10 @@
                 <div>
                     <button class="btn btn-primary btn-sm me-2" data-bs-toggle="modal" data-bs-target="#addStorageModal">Utwórz</button>
                     <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#allStoragesModal">Twoje magazyny</button>
+                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#sharedStoragesModal">
+                        Udostępnione Tobie
+                    </button>
+                    
                 </div>
             </div>
         </div>
@@ -230,6 +234,37 @@
 
 
 <!-- OKNA MODALNE -->
+
+<!-- Modal dla udostępnionych magazynów -->
+<div class="modal fade" id="sharedStoragesModal" tabindex="-1" aria-labelledby="sharedStoragesModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="sharedStoragesModalLabel">Udostępnione magazyny</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <% if (sharedStorages && sharedStorages.length > 0) { %>
+                    <ul class="list-group">
+                        <% sharedStorages.forEach(storage => { %>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong><%= storage.name_storages %></strong><br>
+                                    Właściciel: <%= storage.firstname_users %> <%= storage.lastname_users %>
+                                </div>
+                                <button class="btn btn-primary btn-sm" onclick="window.location.href='/storage/<%= storage.id_storages %>'">Otwórz</button>
+                            </li>
+                        <% }) %>
+                    </ul>                    
+                <% } else { %>
+                    <p>Nie udostępniono Ci żadnych magazynów.</p>
+                <% } %>
+            </div>
+            
+        </div>
+    </div>
+</div>
+
 
 
 

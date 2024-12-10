@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rozwiązywanie Konfliktu Plików</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            background-image: url('/images/xFc.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            color: white;
+        }
+
+        h2, h4 {
+            color: white;
+        }
+
+        .card {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        #diffContent {
+            background-color: #f8f9fa;
+            padding: 1rem;
+            border: none;
+            height: 60vh;
+            overflow-y: auto;
+        }
+
+        #serverContent {
+            height: 60vh;
+            font-family: monospace;
+            resize: none;
+            overflow-y: auto;
+        }
+
+        .btn-wide {
+            width: calc(50% - 0.5rem);
+        }
+
+        .added {
+            color: green;
+            font-weight: bold;
+        }
+
+        .removed {
+            color: red;
+            font-weight: bold;
+        }
+
+        .unchanged {
+            color: black;
+        }
+
+        .legend {
+            margin-top: 1rem;
+            color: white;
+            font-size: 0.9rem;
+        }
+
+        .legend span {
+            display: inline-block;
+            margin-right: 1rem;
+        }
+
+        .legend .added {
+            background-color: rgba(0, 255, 0, 0.2);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+        }
+
+        .legend .removed {
+            background-color: rgba(255, 0, 0, 0.2);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="conflict-data" 
+     data-file-id="<%= fileId %>" 
+     data-storage-id="<%= storageId %>">
+</div>
+
+
+    <div class="container mt-4">
+        <h2 class="text-center">Rozwiązywanie Konfliktu Plików</h2>
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header text-center">
+                        <h4 style="color: black;">Aktualna wersja (Edytowalna)</h4>
+                    </div>
+                    <div class="card-body">
+                        <textarea id="serverContent" class="form-control"><%= serverContent %></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header text-center">
+                        <h4 style="color: black;">Twoja wersja (Podgląd)</h4>
+                    </div>
+                    <div class="card-body">
+                        <div id="diffContent" class="form-control"><%- diffHtml %></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="legend text-center">
+            <span class="added">Dodane elementy (na zielono)</span>
+            <span class="removed">Usunięte elementy (na czerwono)</span>
+        </div>
+
+        <div class="d-flex justify-content-between mt-4">
+            <button class="btn btn-secondary btn-wide" onclick="discardChanges()">Porzuć zmiany</button>
+            <button class="btn btn-primary btn-wide" onclick="resolveConflict()">Rozwiąż konflikt</button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/storages.js"></script>
+</body>
+</html>

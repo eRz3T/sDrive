@@ -46,7 +46,7 @@ git clone https://github.com/eRz3T/sDrive
 ```
 cd sDrive/sdrive
 
-sudo npm install express ejs dotenv jsonwebtoken mysql bcryptjs cookie-parser nodemon
+sudo npm install express ejs dotenv jsonwebtoken mysql bcryptjs cookie-parser nodemon diff
 ```
 ### 4. Uruchomienie projektu
 ```

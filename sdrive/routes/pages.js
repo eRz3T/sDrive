@@ -10,9 +10,12 @@ const { startNewConversation, getConversations, getMessages, sendMessage } = req
 const { respondToFriendRequest, getFriends, removeFriend } = require("../controllers/friends");
 const { downloadFile, downloadSharedFile, downloadStorage } = require("../controllers/download");
 const { shareFile, shareSharedFile } = require('../controllers/shareFile');
-const { createStorage, getUserStorages, getStorageDetails, getFileFromStorage, saveFileStorageContent, addFilesToStorage, removeFileFromStorage, editFileName, shareStorageWithMembers  } = require('../controllers/storages');
+const { createStorage, getUserStorages, getStorageDetails, getFileFromStorage, saveFileStorageContent, addFilesToStorage, removeFileFromStorage, editFileName, shareStorageWithMembers, saveConflictedFile, saveResolvedFileContent  } = require('../controllers/storages');
 const { updateUser } = require('../controllers/userController');
 const router = express.Router();
+const fs = require('fs');
+const path = require('path');
+const Diff = require('diff');
 
 router.get("/show/:filename", loggedIn, showUserFileContent);
 router.get("/show/shared/:filename", loggedIn, showSharedFileContent);
@@ -42,6 +45,53 @@ router.post("/api/storage/:storageId/edit-file-name/:fileId", loggedIn, editFile
 router.post('/api/file/rename/:fileId', loggedIn, renameFile);
 router.post('/api/user/update', loggedIn, updateUser);
 router.post('/api/storage/share', loggedIn, shareStorageWithMembers);
+router.post('/api/save-conflicted-file', loggedIn, saveConflictedFile);
+router.post('/api/file-conflict/:fileId/resolve', loggedIn, saveResolvedFileContent);
+
+
+router.get('/file-conflict', loggedIn, (req, res) => {
+    const { fileId, storageId } = req.query;
+
+    if (!fileId || !storageId) {
+        console.error('Błąd: Brak wymaganych parametrów fileId lub storageId.');
+        return res.status(400).send('Nieprawidłowe parametry zapytania.');
+    }
+
+    const tempDir = path.join(__dirname, '..', 'data', 'temp');
+    const tempFilePath = path.join(tempDir, fileId);
+    const tempFilePathTmp = path.join(
+        tempDir,
+        `${path.basename(fileId, path.extname(fileId))}_tmp${path.extname(fileId)}`
+    );
+
+    if (!fs.existsSync(tempFilePath) || !fs.existsSync(tempFilePathTmp)) {
+        return res.status(404).send('Pliki tymczasowe nie istnieją.');
+    }
+
+    const serverContent = fs.readFileSync(tempFilePath, 'utf8');
+    const localContent = fs.readFileSync(tempFilePathTmp, 'utf8');
+
+    const Diff = require('diff');
+    const diff = Diff.diffWords(serverContent, localContent);
+
+    let diffHtml = '';
+    diff.forEach((part) => {
+        const color = part.added ? 'green' : part.removed ? 'red' : 'black';
+        const fontWeight = part.added || part.removed ? 'bold' : 'normal';
+        diffHtml += `<span style="color:${color}; font-weight:${fontWeight}">${part.value}</span>`;
+    });
+
+    res.render('fileconflict', {
+        serverContent,
+        diffHtml,
+        fileId,
+        storageId, // Przekazywanie storageId do widoku
+    });
+});
+
+
+
+
 
 router.get('/share-storage/:id', loggedIn, (req, res) => {
     const storageId = req.params.id;
@@ -107,7 +157,7 @@ router.get("/storage/:id", loggedIn, (req, res) => {
 
                     // Pobierz pliki w magazynie
                     dbFiles.query(
-                        `SELECT f.originalname_files, f.cryptedname_files, sf.date_storages_file
+                        `SELECT f.originalname_files, f.cryptedname_files, sf.date_storages_file, sf.file_version_storages_files
                          FROM storages_files sf
                          JOIN files f ON sf.id_files = f.id_files
                          WHERE sf.id_storages = ? AND sf.active_storages_files = 1`,

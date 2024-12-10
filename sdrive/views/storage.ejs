@@ -133,34 +133,36 @@
                                 <p><%= person.firstname_users %> <%= person.lastname_users %></p>
                             <% }) %>
                             </p>
-
-                
-
-
-                <h5 class="text-center mb-3">Pliki w magazynie</h5>
-                <ul id="fileList" class="list-unstyled">
-                    <% files.forEach(file => { %>
-                        <li class="file-list-item" 
-                            data-file-id="<%= file.cryptedname_files %>" 
-                            onclick="selectFile('<%= file.cryptedname_files %>', '<%= file.originalname_files %>')">
-                            <span><%= file.originalname_files %></span><br>
-                            <% if (file.date_storages_file) { %>
-                                <small class="text-muted">Dodano: <%= new Date(file.date_storages_file).toLocaleString('pl-PL') %></small>
-                            <% } else { %>
-                                <small class="text-muted">Data niedostępna</small>
-                            <% } %>
-                        </li>
-                    <% }) %>
-                </ul>                                
-                <button class="btn btn-primary shadow w-100 mt-3" data-bs-toggle="modal" data-bs-target="#addFilesModal">
-                    Dodaj pliki
-                </button>
-            </div>
+                            <h5 class="text-center mb-3">Pliki w magazynie</h5>
+                            <ul id="fileList" class="list-unstyled">
+                                <% files.forEach(file => { %>
+                                    <li class="file-list-item" 
+                                        data-file-id="<%= file.cryptedname_files %>" 
+                                        data-file-version="<%= file.file_version_storages_files || 1 %>" 
+                                        onclick="selectFile('<%= file.cryptedname_files %>', '<%= file.originalname_files %>')">
+                                        <span><%= file.originalname_files %></span><br>
+                                        <% if (file.date_storages_file) { %>
+                                            <small class="text-muted">
+                                                Dodano: <%= new Date(file.date_storages_file).toLocaleString('pl-PL') %> 
+                                                | Ver.: <span class="file-version"><%= file.file_version_storages_files || 1 %></span>
+                                            </small>
+                                        <% } else { %>
+                                            <small class="text-muted">Data niedostępna</small><br>
+                                            <small class="text-muted">Ver.: niedostępna</small>
+                                        <% } %>
+                                    </li>
+                                <% }) %>
+                            </ul>                                                           
+                            <button class="btn btn-primary shadow w-100 mt-3" data-bs-toggle="modal" data-bs-target="#addFilesModal">
+                                Dodaj pliki
+                            </button>                            
+                        </div>
 
             <!-- Główna sekcja -->
             <div class="flex-grow-1 d-flex flex-column">
                 <!-- Przyciski zarządzania plikami -->
                 <div class="file-actions">
+                                     
                     <button class="btn btn-primary" id="saveButton" onclick="saveFile()" disabled>Zapisz plik</button>
                     <button class="btn btn-primary" id="deleteButton" onclick="deleteFile()" disabled>Usuń plik</button>
                     <button class="btn btn-primary" id="editFileNameButton" onclick="openEditFileNameModal()" disabled>Edytuj nazwę</button>
@@ -233,6 +235,32 @@
         </div>
     </div>
 </div>
+
+<!-- Modal Konfliktu Wersji -->
+<div class="modal fade" id="versionConflictModal" tabindex="-1" aria-labelledby="versionConflictModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="versionConflictModalLabel">Konflikt wersji pliku</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p id="conflictMessage">Wykryto nowszą wersję pliku! Pracujesz na starej wersji pliku!</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="reloadPage()">Załaduj magazyn i porzuć zmiany</button>
+                <button 
+                    class="btn btn-primary" 
+                    onclick="handleConflict(document.getElementById('editor').value)">
+                    Napraw konflikt
+                </button>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
 
 <!-- Modal Udostępniania -->
 <div class="modal fade" id="shareModal" tabindex="-1" aria-labelledby="shareModalLabel" aria-hidden="true">

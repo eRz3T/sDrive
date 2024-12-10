@@ -247,44 +247,113 @@ const getFileFromStorage = (req, res) => {
 
 
 const saveFileStorageContent = (req, res) => {
-    const fileId = req.params.fileId;
+    const cryptedName = req.params.fileId; // cryptedname_files
     const storageId = req.query.storageId;
     const safeId = req.user.safeid_users;
-    const { content } = req.body;
+    const { content, currentVersion } = req.body; // Pobieramy wersję z przekazanych danych
 
-    // Logowanie przekazanych danych
     console.log('DEBUG: Rozpoczęcie zapisu pliku do magazynu.');
-    console.log(`DEBUG: fileId: ${fileId}`);
+    console.log(`DEBUG: fileId: ${cryptedName}`);
     console.log(`DEBUG: storageId: ${storageId}`);
     console.log(`DEBUG: safeId: ${safeId}`);
+    console.log(`DEBUG: Aktualna wersja: ${currentVersion}`);
     console.log(`DEBUG: Długość zawartości: ${content ? content.length : 'brak zawartości'}`);
 
-    if (!fileId || !storageId || !content) {
+    if (!cryptedName || !storageId || !content) {
         console.error('DEBUG: Błąd - Brak wymaganych danych');
         return res.status(400).json({ status: 'error', error: 'Brak wymaganych danych' });
     }
 
-    // Budowanie ścieżki do pliku
-    const filePath = path.join(__dirname, '..', 'data', 'storages', safeId, storageId, fileId);
+    const filePath = path.join(__dirname, '..', 'data', 'storages', safeId, storageId, cryptedName);
     console.log(`DEBUG: Ścieżka do pliku: ${filePath}`);
 
-    // Sprawdzanie istnienia katalogu przed zapisem
     const dirPath = path.dirname(filePath);
     if (!fs.existsSync(dirPath)) {
         console.error(`DEBUG: Katalog nie istnieje: ${dirPath}`);
         return res.status(500).json({ status: 'error', error: 'Ścieżka do zapisu pliku nie istnieje.' });
     }
 
-    // Próba zapisu pliku
-    fs.writeFile(filePath, content, 'utf8', (err) => {
-        if (err) {
-            console.error(`DEBUG: Błąd zapisu pliku: ${err.message}`);
-            return res.status(500).json({ status: 'error', error: 'Błąd podczas zapisywania pliku.' });
-        }
+    // Znajdź `id_files` na podstawie `cryptedname_files`
+    dbFiles.query(
+        `SELECT id_files FROM files WHERE cryptedname_files = ?`,
+        [cryptedName],
+        (err, fileResults) => {
+            if (err) {
+                console.error(`DEBUG: Błąd podczas pobierania id_files: ${err.message}`);
+                return res.status(500).json({ status: 'error', error: 'Błąd podczas wyszukiwania pliku.' });
+            }
 
-        console.log(`DEBUG: Plik zapisany pomyślnie: ${filePath}`);
-        res.json({ status: 'success', message: 'Plik został zapisany pomyślnie.' });
-    });
+            if (fileResults.length === 0) {
+                console.error('DEBUG: Plik nie został znaleziony w tabeli `files`.');
+                return res.status(404).json({ status: 'error', error: 'Plik nie został znaleziony.' });
+            }
+
+            const fileId = fileResults[0].id_files;
+            console.log(`DEBUG: Znaleziono id_files: ${fileId}`);
+
+            // Pobierz wersję pliku z tabeli `storages_files`
+            dbFiles.query(
+                `SELECT file_version_storages_files 
+                 FROM storages_files 
+                 WHERE id_storages = ? AND id_files = ? AND active_storages_files = 1`,
+                [storageId, fileId],
+                (err, results) => {
+                    if (err) {
+                        console.error(`DEBUG: Błąd podczas pobierania wersji pliku: ${err.message}`);
+                        return res.status(500).json({ status: 'error', error: 'Błąd podczas pobierania wersji pliku.' });
+                    }
+
+                    if (results.length === 0) {
+                        console.error('DEBUG: Plik nie został znaleziony w tabeli `storages_files`.');
+                        return res.status(404).json({ status: 'error', error: 'Plik nie został znaleziony w magazynie.' });
+                    }
+
+                    const dbVersion = results[0].file_version_storages_files || 1; // Domyślnie 1, jeśli brak wersji
+                    console.log(`DEBUG: Wersja pliku w bazie danych: Ver. ${dbVersion}`);
+
+                    // Porównanie wersji
+                    if (dbVersion !== currentVersion) {
+                        console.error(
+                            `DEBUG: Konflikt wersji pliku. Wersja w bazie: ${dbVersion}, przesłana wersja: ${currentVersion}`
+                        );
+                        return res.status(409).json({
+                            status: 'error',
+                            error: `Konflikt wersji pliku. Oczekiwana wersja: Ver. ${dbVersion}`,
+                        });
+                    }
+
+                    // Zapisanie pliku na dysku
+                    fs.writeFile(filePath, content, 'utf8', (err) => {
+                        if (err) {
+                            console.error(`DEBUG: Błąd zapisu pliku: ${err.message}`);
+                            return res.status(500).json({ status: 'error', error: 'Błąd podczas zapisywania pliku.' });
+                        }
+
+                        console.log(`DEBUG: Plik zapisany pomyślnie: ${filePath}`);
+
+                        // Zwiększenie wersji pliku
+                        const newVersion = dbVersion + 1;
+
+                        dbFiles.query(
+                            `UPDATE storages_files 
+                             SET file_version_storages_files = ?, date_storages_file = NOW() 
+                             WHERE id_storages = ? AND id_files = ?`,
+                            [newVersion, storageId, fileId],
+                            (updateErr) => {
+                                if (updateErr) {
+                                    console.error(`DEBUG: Błąd podczas aktualizacji wersji pliku: ${updateErr.message}`);
+                                    return res.status(500).json({ status: 'error', error: 'Błąd podczas aktualizacji wersji pliku.' });
+                                }
+
+                                console.log(`DEBUG: Wersja pliku zaktualizowana do Ver. ${newVersion}`);
+                                res.json({ status: 'success', message: `Plik został zapisany pomyślnie. Aktualna wersja: Ver. ${newVersion}` });
+                            }
+                        );
+                    });
+                }
+            );
+        }
+    );
 };
 
 const addFilesToStorage = async (req, res) => {
@@ -325,7 +394,7 @@ const addFilesToStorage = async (req, res) => {
         for (const file of files) {
             const sourcePath = path.join(__dirname, '..', 'data', 'users', safeId, file.cryptedname_files);
 
-            // Generowanie unikalnej nazwy `originalname_files`
+            // Sprawdzenie unikalności `originalname_files`
             let newOriginalName = file.originalname_files;
             const fileExtension = path.extname(file.originalname_files);
             const fileBaseName = path.basename(file.originalname_files, fileExtension);
@@ -358,42 +427,29 @@ const addFilesToStorage = async (req, res) => {
                 }
             }
 
-            // Generowanie unikalnej nazwy `cryptedname_files`
-            let newCryptedName = `${crypto.randomBytes(16).toString('hex')}${fileExtension}`;
-            let isCryptedNameUnique = false;
-
-            while (!isCryptedNameUnique) {
-                const conflictingCryptedFiles = await new Promise((resolve, reject) => {
-                    dbFiles.query(
-                        'SELECT cryptedname_files FROM files WHERE cryptedname_files = ?',
-                        [newCryptedName],
-                        (err, results) => {
-                            if (err) {
-                                return reject(err);
-                            }
-                            resolve(results);
-                        }
-                    );
-                });
-
-                if (conflictingCryptedFiles.length > 0) {
-                    newCryptedName = `${crypto.randomBytes(16).toString('hex')}${fileExtension}`;
-                } else {
-                    isCryptedNameUnique = true;
-                }
-            }
-
-            const destPath = path.join(storagePath, newCryptedName);
-
             if (fs.existsSync(sourcePath)) {
+                // Generowanie nowej `cryptedname_files`
+                const newCryptedName = `${crypto.randomBytes(16).toString('hex')}${fileExtension}`;
+                const destPath = path.join(storagePath, newCryptedName);
+
+                // Kopiowanie pliku do magazynu z nową nazwą
                 fs.copyFileSync(sourcePath, destPath);
                 console.log(`DEBUG: Skopiowano plik: ${file.cryptedname_files} -> ${destPath}`);
 
-                // Dodaj nowy wpis do tabeli `files`
+                // Dodanie nowego wpisu w tabeli `files`
                 const newFileId = await new Promise((resolve, reject) => {
                     dbFiles.query(
-                        'INSERT INTO files (originalname_files, cryptedname_files, cryptedowner_files, filetype_files, delete_files, dateofupload_files, origin_file) VALUES (?, ?, ?, ?, 0, ?, ?)',
-                        [newOriginalName, newCryptedName, safeId, file.filetype_files, currentDate, 'storage'],
+                        `INSERT INTO files (originalname_files, cryptedname_files, cryptedowner_files, filetype_files, delete_files, dateofupload_files, origin_file, oldcryptedname_file) 
+                         VALUES (?, ?, ?, ?, 0, ?, ?, ?)`,
+                        [
+                            newOriginalName, // Zmieniona nazwa
+                            newCryptedName, // Nowa zaszyfrowana nazwa
+                            safeId, // Właściciel
+                            file.filetype_files, // Typ pliku
+                            currentDate, // Data przesłania
+                            'storage', // Źródło pliku
+                            file.cryptedname_files, // Stara zaszyfrowana nazwa
+                        ],
                         (err, result) => {
                             if (err) {
                                 return reject(err);
@@ -403,12 +459,14 @@ const addFilesToStorage = async (req, res) => {
                     );
                 });
 
+                // Dodanie wpisu do tabeli `storages_files`
                 storageFilesValues.push([
                     storageId,
-                    newFileId,
+                    newFileId, // ID nowego wpisu w tabeli `files`
                     currentDate,
-                    1,
-                    safeId
+                    1, // active_storages_files
+                    safeId,
+                    1, // file_version_storages_files
                 ]);
             } else {
                 console.warn(`DEBUG: Plik nie istnieje: ${sourcePath}`);
@@ -418,7 +476,7 @@ const addFilesToStorage = async (req, res) => {
         if (storageFilesValues.length > 0) {
             await new Promise((resolve, reject) => {
                 dbFiles.query(
-                    'INSERT INTO storages_files (id_storages, id_files, date_storages_file, active_storages_files, modificator_storages_files) VALUES ?',
+                    'INSERT INTO storages_files (id_storages, id_files, date_storages_file, active_storages_files, modificator_storages_files, file_version_storages_files) VALUES ?',
                     [storageFilesValues],
                     (err) => {
                         if (err) {
@@ -437,6 +495,8 @@ const addFilesToStorage = async (req, res) => {
         res.status(500).json({ status: 'error', error: 'Błąd podczas dodawania plików do magazynu.' });
     }
 };
+
+
 
 
 const removeFileFromStorage = (req, res) => {
@@ -633,6 +693,141 @@ const shareStorageWithMembers = (req, res) => {
     );
 };
 
+const saveConflictedFile = (req, res) => {
+    const cryptedName = req.query.fileId; // Pobierz ID pliku z query
+    const storageId = req.query.storageId;
+    const safeId = req.user.safeid_users;
+    const { content } = req.body; // Zawartość pliku od użytkownika
+
+    console.log('DEBUG: Rozpoczęcie obsługi konfliktu pliku.');
+    console.log(`DEBUG: fileId: ${cryptedName}`);
+    console.log(`DEBUG: storageId: ${storageId}`);
+    console.log(`DEBUG: safeId: ${safeId}`);
+    console.log(`DEBUG: Długość zawartości: ${content ? content.length : 'brak zawartości'}`);
+
+    if (!cryptedName || !storageId || !content) {
+        console.error('DEBUG: Brak wymaganych danych');
+        return res.status(400).json({ status: 'error', error: 'Brak wymaganych danych' });
+    }
+
+    // Ścieżka do oryginalnego pliku na serwerze
+    const filePath = path.join(__dirname, '..', 'data', 'storages', safeId, storageId, cryptedName);
+
+    // Katalog tymczasowy
+    const tempDir = path.join(__dirname, '..', 'data', 'temp');
+    if (!fs.existsSync(tempDir)) {
+        fs.mkdirSync(tempDir);
+    }
+
+    // Ścieżki do plików tymczasowych
+    const tempFilePath = path.join(tempDir, cryptedName); // Kopia pliku z serwera
+    const tempFilePathTmp = path.join(
+        tempDir,
+        `${path.basename(cryptedName, path.extname(cryptedName))}_tmp${path.extname(cryptedName)}`
+    ); // Kopia aktualnych zmian użytkownika
+
+    try {
+        // Tworzenie pliku tymczasowego `ABC.txt` (kopia pliku z serwera)
+        if (fs.existsSync(filePath)) {
+            fs.copyFileSync(filePath, tempFilePath);
+            console.log(`DEBUG: Utworzono kopię pliku z serwera: ${tempFilePath}`);
+        } else {
+            console.warn(`DEBUG: Plik z serwera nie istnieje: ${filePath}`);
+        }
+
+        // Tworzenie pliku tymczasowego `ABC_tmp.txt` (kopia zmian użytkownika)
+        fs.writeFileSync(tempFilePathTmp, content, 'utf8');
+        console.log(`DEBUG: Utworzono kopię zmian użytkownika: ${tempFilePathTmp}`);
+
+        // Zwróć sukces
+        res.json({
+            status: 'success',
+            message: 'Pliki konfliktowe zostały utworzone.',
+            tempFilePath,
+            tempFilePathTmp,
+        });
+    } catch (err) {
+        console.error('DEBUG: Błąd podczas obsługi konfliktu pliku:', err);
+        res.status(500).json({ status: 'error', error: 'Wystąpił błąd podczas obsługi konfliktu pliku.' });
+    }
+};
+
+const saveResolvedFileContent = (req, res) => {
+    const cryptedName = req.params.fileId; // cryptedname_files
+    const storageId = req.query.storageId; // Pobieramy z query string
+    const safeId = req.user.safeid_users; // Użytkownik aktualnie zalogowany
+    const { content } = req.body; // Nowa zawartość pliku
+
+    console.log('DEBUG: Rozpoczęcie zapisu rozwiązanej zawartości pliku.');
+    console.log(`DEBUG: fileId: ${cryptedName}`);
+    console.log(`DEBUG: storageId: ${storageId}`);
+    console.log(`DEBUG: safeId: ${safeId}`);
+    console.log(`DEBUG: Długość zawartości: ${content ? content.length : 'brak zawartości'}`);
+
+    if (!cryptedName || !storageId || !content) {
+        console.error('DEBUG: Brak wymaganych danych');
+        return res.status(400).json({ status: 'error', error: 'Brak wymaganych danych' });
+    }
+
+    const filePath = path.join(__dirname, '..', 'data', 'storages', safeId, storageId, cryptedName);
+    console.log(`DEBUG: Ścieżka do pliku: ${filePath}`);
+
+    const dirPath = path.dirname(filePath);
+    if (!fs.existsSync(dirPath)) {
+        console.error(`DEBUG: Katalog nie istnieje: ${dirPath}`);
+        return res.status(500).json({ status: 'error', error: 'Ścieżka do zapisu pliku nie istnieje.' });
+    }
+
+    dbFiles.query(
+        `SELECT f.id_files, sf.file_version_storages_files 
+         FROM storages_files sf 
+         JOIN files f ON sf.id_files = f.id_files 
+         WHERE f.cryptedname_files = ? AND sf.id_storages = ?`,
+        [cryptedName, storageId],
+        (err, results) => {
+            if (err) {
+                console.error(`DEBUG: Błąd podczas pobierania pliku: ${err.message}`);
+                return res.status(500).json({ status: 'error', error: 'Błąd podczas wyszukiwania pliku.' });
+            }
+    
+            if (results.length === 0) {
+                console.error('DEBUG: Plik nie został znaleziony.');
+                return res.status(404).json({ status: 'error', error: 'Plik nie został znaleziony.' });
+            }
+    
+            const fileId = results[0].id_files;
+            const currentVersion = results[0].file_version_storages_files || 1;
+            const newVersion = currentVersion + 1;
+
+            // Zapisanie pliku na dysku
+            fs.writeFile(filePath, content, 'utf8', (err) => {
+                if (err) {
+                    console.error(`DEBUG: Błąd zapisu pliku: ${err.message}`);
+                    return res.status(500).json({ status: 'error', error: 'Błąd podczas zapisywania pliku.' });
+                }
+
+                console.log(`DEBUG: Plik zapisany pomyślnie: ${filePath}`);
+
+                // Aktualizacja wersji pliku w bazie danych
+                dbFiles.query(
+                    `UPDATE storages_files 
+                     SET file_version_storages_files = ?, date_storages_file = NOW() 
+                     WHERE id_storages = ? AND id_files = ?`,
+                    [newVersion, storageId, fileId],
+                    (updateErr) => {
+                        if (updateErr) {
+                            console.error(`DEBUG: Błąd podczas aktualizacji wersji pliku: ${updateErr.message}`);
+                            return res.status(500).json({ status: 'error', error: 'Błąd podczas aktualizacji wersji pliku.' });
+                        }
+
+                        console.log(`DEBUG: Wersja pliku zaktualizowana do Ver. ${newVersion}`);
+                        res.json({ status: 'success', message: `Plik zapisany pomyślnie. Aktualna wersja: Ver. ${newVersion}` });
+                    }
+                );
+            });
+        }
+    );
+};
 
 
 module.exports = {
@@ -645,6 +840,8 @@ module.exports = {
     removeFileFromStorage,
     editFileName,
     shareStorage,
-    shareStorageWithMembers
+    shareStorageWithMembers,
+    saveConflictedFile,
+    saveResolvedFileContent
 };
 

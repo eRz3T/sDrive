@@ -49,6 +49,7 @@ router.post('/api/save-conflicted-file', loggedIn, saveConflictedFile);
 router.post('/api/file-conflict/:fileId/resolve', loggedIn, saveResolvedFileContent);
 
 
+
 router.get('/file-conflict', loggedIn, (req, res) => {
     const { fileId, storageId } = req.query;
 
@@ -374,6 +375,6 @@ router.get("/login", (req, res) => {
     res.render("login");
 });
 
-router.post("/logout", logout);
+router.post("/logout", loggedIn, logout);
 
 module.exports = router;

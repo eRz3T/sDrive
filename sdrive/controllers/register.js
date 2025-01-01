@@ -1,5 +1,8 @@
 const { dbLogins } = require("../routes/db-config");
 const bcrypt = require("bcryptjs");
+const speakeasy = require("speakeasy");
+const qrcode = require("qrcode");
+const nodemailer = require("nodemailer"); 
 
 // Funkcja generująca losowy identyfikator składający się z małych i dużych liter, cyfr, oraz znaków # i @
 const generateSafeId = () => {
@@ -25,6 +28,13 @@ const isSafeIdUnique = (safeId) => {
     });
 };
 
+// Funkcja generująca klucz Google Authenticator
+const generateGoogleAuthSecret = async (safeId) => {
+    const secret = speakeasy.generateSecret({ name: `sDrive (${safeId})` });
+    const qrCodeDataUrl = await qrcode.toDataURL(secret.otpauth_url);
+    return { secret, qrCodeDataUrl };
+};
+
 const register = async (req, res) => {
     const { email, password: Npassword, firstName, lastName, birthDate } = req.body;
 
@@ -36,33 +46,36 @@ const register = async (req, res) => {
             if (result[0]) {
                 return res.json({ status: "error", error: "Email już jest w systemie" });
             } else {
-                // Hashowanie hasła użytkownika
                 const password = await bcrypt.hash(Npassword, 8);
 
-                // Generowanie unikalnego safeId
                 let safeId;
                 let unique = false;
-
-                // Pętla, która generuje unikalny `safeid_users`, jeśli nie jest unikalny, generuje nowy
                 while (!unique) {
-                    safeId = generateSafeId();  // Wygeneruj nowy safeId
-                    unique = await isSafeIdUnique(safeId);  // Sprawdź, czy jest unikalny
+                    safeId = generateSafeId();
+                    unique = await isSafeIdUnique(safeId);
                 }
 
-                // Zapisanie nowego użytkownika do bazy danych
+                const { secret, qrCodeDataUrl } = await generateGoogleAuthSecret(safeId);
+
                 dbLogins.query('INSERT INTO users SET ?', { 
                     email_users: email, 
                     password_users: password,
                     firstname_users: firstName,
                     lastname_users: lastName,
                     dateofbirth_users: birthDate,
-                    safeid_users: safeId, // Zapisujemy unikalne safeId
-                    type_users: "Normal" // Automatycznie ustawiamy wartość "Normal" dla kolumny type_users
+                    safeid_users: safeId,
+                    type_users: "Normal",
+                    google_auth_secret: secret.base32 // Zapisz sekretny klucz w bazie
                 }, (error, results) => {
                     if (error) throw error;
-                    return res.json({ status: "success", success: "Użytkownik został zarejestrowany" });
+
+                    // Prześlij QR Code do frontendu
+                    return res.json({ 
+                        status: "success", 
+                        success: "Użytkownik został zarejestrowany",
+                        qrCode: qrCodeDataUrl // Kod QR dla Google Authenticator
+                    });
                 });
-                
             }
         });
     }

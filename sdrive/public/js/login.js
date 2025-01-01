@@ -4,8 +4,10 @@ form.addEventListener("submit", (event) => {
     event.preventDefault();  
     const login = {
         email: document.getElementById("email").value,
-        password: document.getElementById("password").value
+        password: document.getElementById("password").value,
+        totp: document.getElementById("totp").value // Dodanie kodu Google Authenticator
     };
+
     fetch("/api/login", {
         method: "POST",
         body: JSON.stringify(login),
@@ -14,7 +16,7 @@ form.addEventListener("submit", (event) => {
         }
     }).then(res => res.json())
         .then(data => {
-            console.log("Odpowiedź z backendu:", data);  // Dodaj to do debugowania
+            console.log("Odpowiedź z backendu:", data);  // Debugowanie
             if (data.status === "error") {
                 document.getElementById("success").style.display = "none";
                 document.getElementById("error").style.display = "block";
@@ -22,6 +24,10 @@ form.addEventListener("submit", (event) => {
             } else {
                 window.location.href = data.redirect;
             }
+        })
+        .catch(err => {
+            document.getElementById("error").style.display = "block";
+            document.getElementById("error").innerText = "Wystąpił błąd podczas logowania.";
+            console.error(err);
         });
-    
 });

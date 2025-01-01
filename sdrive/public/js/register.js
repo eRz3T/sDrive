@@ -26,6 +26,18 @@ form.addEventListener("submit", (event) => {
                 document.getElementById("error").style.display = "none";
                 document.getElementById("success").style.display = "block";
                 document.getElementById("success").innerText = data.success;
+
+                // Wyświetl kod QR w oknie modalnym, jeśli jest dostępny
+                if (data.qrCode) {
+                    document.getElementById("qrCodeImage").src = data.qrCode;
+                    const modal = new bootstrap.Modal(document.getElementById("googleAuthModal"));
+                    modal.show();
+                }
             }
+        })
+        .catch(err => {
+            document.getElementById("error").style.display = "block";
+            document.getElementById("error").innerText = "Wystąpił błąd podczas rejestracji.";
+            console.error(err);
         });
 });

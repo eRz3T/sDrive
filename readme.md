@@ -1,8 +1,9 @@
-# Aplikacja Webowa Przechowująca Pliki z Dostępem Chronionym
+# 🌐 Aplikacja Webowa Przechowująca Pliki z Dostępem Chronionym
 
 ### 1. Opis projektu
 
-Celem niniejszej pracy dyplomowej jest  wdrożenie aplikacji internetowej umożliwiającej bezpieczne przechowywanie plików oraz zarządzanie dostępem do nich. W dobie intensywnej digitalizacji danych rośnie potrzeba opracowania niezawodnych metod ochrony informacji przechowywanych online.
+Celem projektu jest wdrożenie aplikacji internetowej umożliwiającej bezpieczne przechowywanie plików oraz zarządzanie dostępem do nich. W dobie intensywnej digitalizacji danych rośnie potrzeba opracowania niezawodnych metod ochrony informacji przechowywanych online. Aplikacja pozwala na przechowywanie plików w chmurze z dodatkowymi funkcjami kontroli dostępu, szyfrowania i zarządzania użytkownikami.
+
 
 ### 2. Technologie
     Backend: JavaScript, Node.js

@@ -6,9 +6,8 @@ Celem projektu jest wdrożenie aplikacji internetowej umożliwiającej bezpieczn
 
 
 ### 2. Technologie
-    Backend: JavaScript, Node.js
+    Backend: Node.js, Express.js
     Baza danych: MySQL
-    Konteneryzacja: Docker
 
 ### 3. Instalacja projektu
 
